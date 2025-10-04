@@ -1,0 +1,8 @@
+[package]
+name = "backend-server"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+hyper = { version = "0.14", features = ["full"] }
