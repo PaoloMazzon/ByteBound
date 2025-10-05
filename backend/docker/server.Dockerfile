@@ -4,7 +4,7 @@
 FROM rust:latest AS build
 
 # Get tools & the repo
-RUN apt-get update && apt-get install -y git npm && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y git npm musl-tools && rm -rf /var/lib/apt/lists/*
 RUN git clone https://github.com/PaoloMazzon/storm-surge-team.git /app
 
 # Build cargo
