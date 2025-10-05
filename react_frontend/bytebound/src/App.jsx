@@ -57,8 +57,43 @@ export default function LeetCodeClone() {
     }
   };
 
-  const handleSubmit = () => {
-    alert('Code submitted!\n\n' + code);
+  const handleSubmit = async () => {
+    try {
+      // Replace with your AI API endpoint
+      const requestBody = {
+        constraints: { cpu: 1, ram: 1 },
+        code: code,               // assuming `code` is your code string
+        challenge_name: "challenge"
+      };
+
+      const response = await fetch('http://localhost:3000', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
+      });
+      
+
+      if (response.ok) {
+        const data = await response.json();
+        const soln = {
+          compiled: soln.compiled,
+          errors: soln.errors,
+          runtime_us: soln.runtime_us,
+          success: soln.success,
+          test_cases: soln.test_cases
+        };
+      } else {
+        throw new Error('Server Call Failed');
+      }
+    } catch (error) {
+      const soln = {
+          compiled: false,
+          errors: "",
+          runtime_us: -1,
+          success: false,
+          test_cases: []
+        };
+    }
   };
 
   const handleKeyPress = (e) => {
