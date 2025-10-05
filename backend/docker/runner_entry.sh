@@ -7,7 +7,7 @@ MEMORY_LIMIT="$3"
 # Limit virtual memory
 ulimit -v $MEMORY_LIMIT
 
-cpulimit -l $CPU_LIMIT $1
+cpulimit -l $CPU_LIMIT $BINARY_PATH
 
 exit
 

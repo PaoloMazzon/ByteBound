@@ -112,14 +112,21 @@ fn process_reply(request: ApiRequest) -> ApiReply {
 
     // Attempt to run the code
     // TODO: Actually use challenge name
-    if let Err(e) = create_runner_safe(path.to_str().unwrap_or(""), request.constraints.cpu, request.constraints.ram, 1) {
-        println!("Failed to run {:?}", request.code);
-        return ApiReply {
-            compiled: true, 
-            success: false, 
-            runtime_us: 0, 
-            errors: format!("{:?}", e), 
-            test_cases: vec!()
+    #[allow(unused_assignments)]
+    let mut output = String::new();
+    match create_runner_safe(path.to_str().unwrap_or(""), request.constraints.cpu, request.constraints.ram, 1) {
+        Ok(stdout) => {
+            output = stdout;
+        },
+        Err(e) => {
+            println!("Failed to run {:?}", request.code);
+            return ApiReply {
+                compiled: true, 
+                success: false, 
+                runtime_us: 0, 
+                errors: format!("{:?}", e), 
+                test_cases: vec!()
+            }
         }
     }
 
@@ -129,7 +136,7 @@ fn process_reply(request: ApiRequest) -> ApiReply {
         compiled: true, 
         success: true, 
         runtime_us: 0, 
-        errors: "".to_string(), 
+        errors: output, 
         test_cases: vec!()
     }
 }
