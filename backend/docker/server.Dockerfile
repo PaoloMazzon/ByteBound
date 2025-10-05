@@ -15,7 +15,8 @@ RUN cargo build --release --target x86_64-unknown-linux-musl
 # Build react front end
 WORKDIR /app/react_frontend/bytebound/
 RUN npm install
-RUN npm i tailwindcss @tailwindcss/vite
+RUN npm install lucide-react
+RUN npm i tailwindcss @tailwindcss/vite 
 RUN npm run build
 
 # This step creates a slim server image to run on
@@ -50,7 +51,7 @@ EXPOSE 80
 COPY --from=build /app/backend/backend-server/target/x86_64-unknown-linux-musl/release/backend-server /app/server
 
 # Copy over the React frontend
-COPY --from=build /app/react_frontend/bytebound/dist/ /app/server/
+COPY --from=build /app/react_frontend/bytebound/dist/ /app/
 
 # Entrypoint stuff
 COPY server_entry.sh /app/entry.sh
