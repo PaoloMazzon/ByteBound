@@ -2,7 +2,7 @@ This is the source of truth for our REST apis. Please modify this if you ever
 change the internal code handling the APIs.
 
 ```json
-// request
+// submit POST
 {
   "constraints": { 
   	"cpu": 500, // in mhz
@@ -12,12 +12,22 @@ change the internal code handling the APIs.
   "challenge_name": "challenge"
 }
 
-// reply
+// submit response
 {
   "compiled": true,
   "success": true,
   "runtime_us": 329814, // microseconds
   "errors": "":,
   "test_cases": [true, false, true, false, true]
+}
+
+// ai POST
+{
+  "prompt": "ai prompt"
+}
+
+// ai response
+{
+  "reply": ""
 }
 ```
