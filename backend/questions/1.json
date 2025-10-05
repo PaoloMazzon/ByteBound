@@ -21,6 +21,24 @@
       "explanation": "Eight different combinations of steps"
     }
   ],
+  "test_cases": [
+    {
+      "input": 8,
+      "output": 21
+    },
+    {
+      "input": 10,
+      "output": 55
+    },
+    {
+      "input": 12,
+      "output": 144
+    },
+    {
+      "input": 36,
+      "output": 14930352
+    }
+  ],
   "difficulty": "Medium",
   "topics": ["Dynamic Programming", "Fibonacci Sequence", "Recursion", "Optimization"]
 }

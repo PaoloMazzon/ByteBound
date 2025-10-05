@@ -1,4 +1,5 @@
 use std::convert::Infallible;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use hyper::{header, Body, Method, Request, Response};
 use hyper::body::to_bytes;
 use anyhow::anyhow;
@@ -9,6 +10,12 @@ use gemini_client_rs::{
     GeminiClient
 };
 use serde_json::{json};
+
+use crate::compile::compile_c_file;
+use crate::run_container::create_runner_safe;
+
+// for unique filenames
+static COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 /// AI request
 #[allow(dead_code)]
@@ -73,13 +80,40 @@ struct ApiReply {
 
 /// Top-level function that gets an api request
 fn process_reply(request: ApiRequest) -> ApiReply {
-    // TODO: Actually parse it
     println!("Request: {:#?}", request);
+
+    // Attempt to compile the code
+    let path = match compile_c_file(&request.code, format!("/tmp/garbage{}.c", COUNTER.fetch_add(1, Ordering::SeqCst)).as_str()) {
+        Ok(path) => path,
+        Err(s) => {
+            return ApiReply {
+                compiled: false, 
+                success: false, 
+                runtime_us: 0, 
+                errors: s, 
+                test_cases: vec!()
+            }
+        }
+    };
+
+    // Attempt to run the code
+    // TODO: Actually use challenge name
+    if let Err(e) = create_runner_safe(path.to_str().unwrap_or(""), request.constraints.cpu, request.constraints.ram, 1) {
+        return ApiReply {
+            compiled: true, 
+            success: false, 
+            runtime_us: 0, 
+            errors: format!("{:?}", e), 
+            test_cases: vec!()
+        }
+    }
+
+    // TODO: Test cases
 
     ApiReply { 
         compiled: true, 
         success: true, 
-        runtime_us: 1000, 
+        runtime_us: 0, 
         errors: "".to_string(), 
         test_cases: vec!()
     }

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
 # start backend
-./server >> backend.log &
+./server &
 python3 server.py

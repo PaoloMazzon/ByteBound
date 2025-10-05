@@ -3,7 +3,7 @@
 FROM alpine:latest
 
 # Setup dependencies
-RUN apk add --no-cache bash
+RUN apk add --no-cache bash cpulimit
 
 # Copy entrypoint and make it runnable
 COPY runner_entry.sh /usr/local/bin/runner_entry.sh

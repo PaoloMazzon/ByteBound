@@ -47,6 +47,9 @@ WORKDIR /app
 # Expose HTTP port
 EXPOSE 80
 
+# Copy over problems
+COPY --from=build /app/backend/questions/ /questions/
+
 # Copy over the rust backend
 COPY --from=build /app/backend/backend-server/target/x86_64-unknown-linux-musl/release/backend-server /app/server
 

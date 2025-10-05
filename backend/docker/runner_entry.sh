@@ -1,4 +1,19 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+BINARY_PATH="$1"
+CPU_LIMIT="$2"
+MEMORY_LIMIT="$3"
+
+# Limit virtual memory
+ulimit -v $MEMORY_LIMIT
+
+# goofy ahh math to get cpu percent assuming 2ghz clock
+echo $@
+ls
+cpulimit -l $CPU_LIMIT /$1
+
+exit
+
 set -e
 
 BINARY_PATH="$1"
