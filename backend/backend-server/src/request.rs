@@ -4,6 +4,22 @@ use hyper::body::to_bytes;
 use anyhow::anyhow;
 use serde::{Serialize, Deserialize};
 
+/// AI request
+#[allow(dead_code)]
+#[derive(Deserialize, Debug)]
+struct ApiAiRequest {
+    /// AI chatbot prompt
+    prompt: String
+}
+
+/// AI reply
+#[allow(dead_code)]
+#[derive(Serialize, Debug)]
+struct ApiAiReply {
+    /// AI chatbot prompt reply
+    reply: String
+}
+
 /// Only needed by ApiRequest
 #[allow(dead_code)]
 #[derive(Deserialize, Debug)]
@@ -51,8 +67,7 @@ struct ApiReply {
 
 /// Top-level function that gets an api request
 fn process_reply(request: ApiRequest) -> ApiReply {
-    // the json passed to this function is guaranteed to be valid
-
+    // TODO: Actually parse it
     println!("Request: {:#?}", request);
 
     ApiReply { 
@@ -61,6 +76,14 @@ fn process_reply(request: ApiRequest) -> ApiReply {
         runtime_us: 1000, 
         errors: "".to_string(), 
         test_cases: vec!()
+    }
+}
+
+/// Top-level ai processing function
+fn process_ai_reply(request: ApiAiRequest) -> ApiAiReply {
+    // TODO: This
+    ApiAiReply {
+        reply: "".to_string()
     }
 }
 
@@ -75,24 +98,69 @@ async fn validate_request(req: Request<Body>) -> Result<ApiRequest, anyhow::Erro
     Ok(json)
 }
 
+/// Returns a json guaranteed to contain all necessary fields if the request
+/// is valid, otherwise returns an error
+async fn validate_ai_request(req: Request<Body>) -> Result<ApiAiRequest, anyhow::Error> {
+    let bytes = to_bytes(req.into_body()).await?;
+    let string = String::from_utf8(bytes.to_vec())
+        .map_err(|e| anyhow!("{:?}", e))?;
+    let json: ApiAiRequest = serde_json::from_str(&string)?;
+
+    Ok(json)
+}
+
 pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Infallible> {
     let method = req.method().clone();
-    let json_potential = validate_request(req).await;
+    let endpoint = req.uri().clone();
+
     // really trusting this not to explode
     let default_reply = Response::builder().status(500).body("Failed".into()).unwrap();
 
-    let mut response = match method {
+    let mut response = match (method, endpoint.path()) {
         // Handle OPTIONS preflight
-        Method::OPTIONS => Response::builder()
+        (Method::OPTIONS, _) => Response::builder()
             .status(204)
             .body(Body::empty())
             .unwrap_or(default_reply),
 
-        // Example route
-        Method::POST => {
-            match json_potential {
+        // Submit code
+        (Method::POST, "submit") => {
+            match validate_request(req).await {
                 Ok(json) => {
-                    let body = serde_json::to_string(&process_reply(json)).unwrap_or("{}".to_string());
+                    let reply = process_reply(json);
+                    let body = match serde_json::to_string(&reply) {
+                        Ok(string) => string,
+                        Err(e) => {
+                            println!("Failed to parse submit request {:#?}, {:?}", reply, e);
+                            "null".to_string()
+                        }
+                    };
+
+                    Response::builder()
+                             .status(200)
+                             .body(body.into())
+                             .unwrap_or(default_reply)
+                },
+                Err(e) => Response::builder()
+                                    .status(400)
+                                    .body(Body::from(format!("{:?}", e)))
+                                    .unwrap_or(default_reply),
+            }
+        }
+
+        // ai garbage wrapper
+        (Method::POST, "ai") => {
+            match validate_ai_request(req).await {
+                Ok(json) => {
+                    let reply = process_ai_reply(json);
+                    let body = match serde_json::to_string(&reply) {
+                        Ok(string) => string,
+                        Err(e) => {
+                            println!("Failed to parse ai request {:#?}, {:?}", reply, e);
+                            "null".to_string()
+                        }
+                    };
+
                     Response::builder()
                              .status(200)
                              .body(body.into())

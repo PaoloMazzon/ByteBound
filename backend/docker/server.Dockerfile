@@ -1,15 +1,23 @@
-# The docker container that will run the entire webserver front and back
+# See README.md for how to setup a webserver for this app
 
 # This step clones the remote repo and builds the server
 FROM rust:latest AS build
 
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+# Get tools & the repo
+RUN apt-get update && apt-get install -y git npm && rm -rf /var/lib/apt/lists/*
 RUN git clone https://github.com/PaoloMazzon/storm-surge-team.git /app
 
+# Build cargo
 WORKDIR /app/backend/backend-server
-
 RUN rustup target add x86_64-unknown-linux-musl
 RUN cargo build --release --target x86_64-unknown-linux-musl
+
+# Build react front end
+WORKDIR /app/react_frontend/bytebound/
+RUN npm install
+RUN npm install lucide-react
+RUN npm i tailwindcss @tailwindcss/vite 
+RUN npm run build
 
 # This step creates a slim server image to run on
 FROM alpine:latest AS server
@@ -43,7 +51,7 @@ EXPOSE 80
 COPY --from=build /app/backend/backend-server/target/x86_64-unknown-linux-musl/release/backend-server /app/server
 
 # Copy over the React frontend
-# TODO: This
+COPY --from=build /app/react_frontend/bytebound/dist/ /app/
 
 # Entrypoint stuff
 COPY server_entry.sh /app/entry.sh

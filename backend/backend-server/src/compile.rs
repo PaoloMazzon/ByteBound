@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 pub fn compile_c_file(c_file: &str, output_file: &str) -> Result<PathBuf, String> {
     let status = Command::new("gcc")
-        .args(&["-o", output_file, c_file])
+        .args(&["-static", "-o", output_file, c_file])
         .status()
         .map_err(|e| e.to_string())?;
 
