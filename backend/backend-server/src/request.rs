@@ -2,21 +2,66 @@ use std::convert::Infallible;
 use hyper::{header, Body, Method, Request, Response};
 use hyper::body::to_bytes;
 use anyhow::anyhow;
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 
-#[allow(dead_code)]
-#[derive(Deserialize, Debug)]
-struct ApiRequest {
-    constraints: Constraints,
-    code: String,
-    challenge_name: String,
-}
-
+/// Only needed by ApiRequest
 #[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 struct Constraints {
-    cpu: i64,
-    ram: i64,
+    /// CPU constraint in mhz
+    pub cpu: i64,
+
+    /// RAM amount in bytes
+    pub ram: i64,
+}
+
+/// Represents a client-provided REST API request, maps 1:1 to REST.md
+#[allow(dead_code)]
+#[derive(Deserialize, Debug)]
+struct ApiRequest {
+    /// Cpu and ram constraints
+    pub constraints: Constraints,
+
+    /// C code as a string
+    pub code: String,
+
+    /// Challenge name to run the code against
+    pub challenge_name: String,
+}
+
+/// Represents the outgoing response, maps 1:1 to REST.md
+#[allow(dead_code)]
+#[derive(Serialize, Debug)]
+struct ApiReply {
+    /// Whether or not the code successfully compiled
+    pub compiled: bool,
+
+    /// Whether or not the code ran successfully (not if it passed test cases)
+    pub success: bool,
+
+    /// How long it took to run the program inside the docker container (microseconds)
+    pub runtime_us: u64,
+
+    /// Any compiler or runtime errors
+    pub errors: String,
+
+    /// Whether or not each test case passed
+    pub test_cases: Vec<bool>
+}
+
+/// Top-level function that gets an api request
+fn process_reply(request: ApiRequest) -> ApiReply {
+    // the json passed to this function is guaranteed to be valid
+
+    println!("Request: {:#?}", request);
+
+    ApiReply { 
+        compiled: true, 
+        success: true, 
+        runtime_us: 1000, 
+        errors: "".to_string(), 
+        test_cases: vec!()
+    }
 }
 
 /// Returns a json guaranteed to contain all necessary fields if the request
@@ -28,14 +73,6 @@ async fn validate_request(req: Request<Body>) -> Result<ApiRequest, anyhow::Erro
     let json: ApiRequest = serde_json::from_str(&string)?;
 
     Ok(json)
-}
-
-fn process_reply(request: ApiRequest) -> Response<Body> {
-    // the json passed to this function is guaranteed to be valid
-
-    println!("Request: {:#?}", request);
-
-    Response::new("body".into())
 }
 
 pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Infallible> {
@@ -55,12 +92,16 @@ pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Infall
         Method::POST => {
             match json_potential {
                 Ok(json) => {
-                    process_reply(json)
+                    let body = serde_json::to_string(&process_reply(json)).unwrap_or("{}".to_string());
+                    Response::builder()
+                             .status(200)
+                             .body(body.into())
+                             .unwrap_or(default_reply)
                 },
                 Err(e) => Response::builder()
                                     .status(400)
                                     .body(Body::from(format!("{:?}", e)))
-                                    .unwrap(),
+                                    .unwrap_or(default_reply),
             }
         }
 

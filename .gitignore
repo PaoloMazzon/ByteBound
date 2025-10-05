@@ -4,6 +4,8 @@
 *.apk
 *.ap_
 
+Cargo.lock
+
 # Files for the ART/Dalvik VM
 *.dex
 
