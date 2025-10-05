@@ -3,6 +3,12 @@ use hyper::{header, Body, Method, Request, Response};
 use hyper::body::to_bytes;
 use anyhow::anyhow;
 use serde::{Serialize, Deserialize};
+use dotenvy::dotenv;
+use gemini_client_rs::{
+    types::{Content, ContentPart, GenerateContentRequest, PartResponse, Role},
+    GeminiClient,
+};
+use serde_json::{json, Value};
 
 /// AI request
 #[allow(dead_code)]
@@ -80,11 +86,39 @@ fn process_reply(request: ApiRequest) -> ApiReply {
 }
 
 /// Top-level ai processing function
-fn process_ai_reply(request: ApiAiRequest) -> ApiAiReply {
-    // TODO: This
-    ApiAiReply {
-        reply: "".to_string()
+async fn process_ai_reply(request: ApiAiRequest) -> Result<ApiAiReply, Box<dyn std::error::Error>> {
+    dotenv().ok();
+    let api_key = std::env::var("GEMINI_API_KEY")?;
+    let client = GeminiClient::new(api_key);
+    let model_name = "gemini-2.5-flash";
+    
+    // Create a single request with just the user's message
+    let req_json = json!({
+        "contents": [{
+            "parts": [{"text": request.message}],
+            "role": "user"
+        }]
+    });
+    
+    let request: GenerateContentRequest = serde_json::from_value(req_json)?;
+    let response = client.generate_content(model_name, &request).await?;
+    
+    // Extract the text response
+    let mut response_text = String::new();
+    if let Some(candidates) = response.candidates {
+        for candidate in &candidates {
+            for part in &candidate.content.parts {
+                if let PartResponse::Text(text) = part {
+                    response_text.push_str(text);
+                }
+            }
+        }
     }
+    
+    // Return the AI response
+    Ok(ApiAiReply {
+        reply: response_text,
+    })
 }
 
 /// Returns a json guaranteed to contain all necessary fields if the request
