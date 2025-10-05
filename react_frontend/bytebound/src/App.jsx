@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Code, CheckCircle } from 'lucide-react';
 import './App.css'
 
+import CodeOutputBox from './components/OutpuBox.jsx';
+
 export default function LeetCodeClone() {
   const [code, setCode] = useState(`function twoSum(nums, target) {
   // Write your solution here
@@ -191,7 +193,7 @@ export default function LeetCodeClone() {
         {/* Middle Panel - Code Editor */}
         <div className="flex-1 flex flex-col bg-gray-900">
           <div className="bg-gray-800 px-4 py-2 border-b border-gray-700">
-            <span className="text-sm text-gray-400">JavaScript</span>
+            <span className="text-sm text-gray-400">Python</span>
           </div>
           <textarea
             value={code}
@@ -200,6 +202,9 @@ export default function LeetCodeClone() {
             spellCheck="false"
             style={{ fontFamily: 'Monaco, Consolas, "Courier New", monospace' }}
           />
+          <div>
+            <CodeOutputBox code={"Output will be displayed here..."} />
+          </div>
         </div>
 
         {/* Right Panel - AI Chat */}
