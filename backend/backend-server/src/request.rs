@@ -77,19 +77,21 @@ async fn validate_request(req: Request<Body>) -> Result<ApiRequest, anyhow::Erro
 
 pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Infallible> {
     let method = req.method().clone();
+    let endpoint = req.uri().clone();
+
     let json_potential = validate_request(req).await;
     // really trusting this not to explode
     let default_reply = Response::builder().status(500).body("Failed".into()).unwrap();
 
-    let mut response = match method {
+    let mut response = match (method, endpoint.path()) {
         // Handle OPTIONS preflight
-        Method::OPTIONS => Response::builder()
+        (Method::OPTIONS, _) => Response::builder()
             .status(204)
             .body(Body::empty())
             .unwrap_or(default_reply),
 
-        // Example route
-        Method::POST => {
+        // Submit code
+        (Method::POST, "submit") => {
             match json_potential {
                 Ok(json) => {
                     let reply = process_reply(json);
@@ -111,6 +113,11 @@ pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Infall
                                     .body(Body::from(format!("{:?}", e)))
                                     .unwrap_or(default_reply),
             }
+        }
+
+        // ai garbage wrapper
+        (Method::POST, "ai") => {
+            panic!("asdasd")
         }
 
         // Default 404

@@ -50,7 +50,7 @@ EXPOSE 80
 COPY --from=build /app/backend/backend-server/target/x86_64-unknown-linux-musl/release/backend-server /app/server
 
 # Copy over the React frontend
-# TODO: This
+COPY --from=build /app/react_frontend/bytebound/dist/ /app/server/
 
 # Entrypoint stuff
 COPY server_entry.sh /app/entry.sh
