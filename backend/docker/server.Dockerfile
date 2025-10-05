@@ -13,6 +13,8 @@ RUN cargo build --release --target x86_64-unknown-linux-musl
 FROM alpine:latest AS server
 
 RUN mkdir /app
+# Gets gcc
+RUN apk add --no-cache gcc musl-dev make bash
 WORKDIR /app
 COPY --from=build /app/backend/backend-server/target/x86_64-unknown-linux-musl/release/backend-server /app/server
 
