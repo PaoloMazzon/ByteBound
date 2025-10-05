@@ -2,7 +2,7 @@ use std::process::Command;
 use std::path::PathBuf;
 
 
-fn compile_c_file(c_file: &str, output_file: &str) -> Result<PathBuf, String> {
+pub fn compile_c_file(c_file: &str, output_file: &str) -> Result<PathBuf, String> {
     let status = Command::new("gcc")
         .args(&["-o", output_file, c_file])
         .status()
