@@ -1,11 +1,8 @@
-use hyper::{Body, Request, Response, Server};
+mod request;
+
+use hyper::{Server};
 use hyper::service::{make_service_fn, service_fn};
 use std::convert::Infallible;
-
-async fn handle(req: Request<Body>) -> Result<Response<Body>, Infallible> {
-    println!("{:?}", req);
-    Ok(Response::new(Body::from("Hello, world!")))
-}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -15,7 +12,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // a MakeService closure — constructs a new service for each connection
     let make_svc = make_service_fn(|_conn| async {
         // service_fn converts our async function into a `Service`
-        Ok::<_, Infallible>(service_fn(handle))
+        Ok::<_, Infallible>(service_fn(request::handle_request))
     });
 
     let server = Server::bind(&addr).serve(make_svc);
