@@ -16,6 +16,10 @@ pub fn create_runner(binary_path: &str) -> io::Result<()> {
         .args([
             "run",
             "--rm",
+            "--privileged",
+            "--cgroupns=host",
+            "-v",
+            "/sys/fs/cgroup:/sys/fs/cgroup:rw",
             "-v",
             &format!("{}:/host_bin", host_bin_dir),
             "runner",
