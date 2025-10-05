@@ -86,13 +86,13 @@ export default function ByteCode() {
       if (response.ok) {
         const data = await response.json();
         const soln = {
-          compiled: soln.compiled,
-          errors: soln.errors,
-          runtime_us: soln.runtime_us,
-          success: soln.success,
-          test_cases: soln.test_cases
+          compiled: data.compiled,
+          errors: data.errors,
+          runtime_us: data.runtime_us,
+          success: data.success,
+          test_cases: data.test_cases
         };
-        console.log(response);
+        console.log(data);
       } else {
         throw new Error('Server Call Failed');
       }
@@ -181,7 +181,7 @@ export default function ByteCode() {
             style={{ fontFamily: 'Monaco, Consolas, "Courier New", monospace' }}
           />
           <div>
-            <CodeOutputBox code={"Output will be displayed here..."} />
+            <CodeOutputBox soln={"Output"} />
           </div>
         </div>
 
