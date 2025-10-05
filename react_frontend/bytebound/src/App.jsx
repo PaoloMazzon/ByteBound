@@ -69,18 +69,22 @@ export default function LeetCodeClone() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-900">
+    
+    <div className="w-full h-screen flex flex-col">
       {/* Header */}
+      {/*This is for header styling */}
+
       <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between ">
           <div className="flex items-center gap-3">
             <Code className="text-green-400" size={28} />
-            <h1 className="text-2xl font-bold text-white">CodeChallenge</h1>
+            <h1 className="text-2xl font-bold text-white ">ByteBound</h1>
           </div>
-          <button
-            onClick={handleSubmit}
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
-          >
+         <button
+      onClick={handleSubmit}
+      className="flex items-center gap-2 bg-green-400 hover:bg-green-700 text-black px-6 py-2 rounded-lg font-medium"
+      >
+
             <CheckCircle size={20} />
             Submit
           </button>
@@ -88,7 +92,7 @@ export default function LeetCodeClone() {
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden ">
         {/* Left Panel - Problem Description */}
         <div className="w-1/3 bg-gray-800 overflow-y-auto border-r border-gray-700">
           <div className="p-6">
@@ -121,8 +125,8 @@ export default function LeetCodeClone() {
                   <div>nums = [2,7,11,15], target = 9</div>
                   <div className="text-gray-400 mt-2">Output:</div>
                   <div>[0,1]</div>
-                  <div className="text-gray-400 mt-2">Explanation:</div>
-                  <div>Because nums[0] + nums[1] == 9, we return [0, 1].</div>
+                  <div className="text-gray-400 mt-2 ">Explanation:</div>
+                  <div className="mx-auto">Because nums[0] + nums[1] == 9, we return [0, 1].</div>
                 </pre>
               </div>
 
@@ -238,7 +242,7 @@ export default function LeetCodeClone() {
               <button
                 onClick={() => sendMessageToAI(input)}
                 disabled={isLoading || !input.trim()}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white p-2 rounded-lg transition-colors"
+                className="bg-green-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-black p-2 rounded-lg transition-colors"
               >
                 <Send size={20} />
               </button>
@@ -246,6 +250,8 @@ export default function LeetCodeClone() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+      
+  
   );
 }
