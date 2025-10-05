@@ -64,8 +64,6 @@ mod tests {
             Err(e) => println!("Error: {}", e), // TODO : Pass error to user if it didn't compile through JSON
         }
 
-        
-
         let mut temp_string = TMP_DIR.to_string();
         temp_string.push_str("/temp");
         let bin_dir: &str = &temp_string;

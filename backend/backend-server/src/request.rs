@@ -1,4 +1,5 @@
 use std::convert::Infallible;
+use std::fs;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use hyper::{header, Body, Method, Request, Response};
 use hyper::body::to_bytes;
@@ -83,9 +84,22 @@ fn process_reply(request: ApiRequest) -> ApiReply {
     println!("Request: {:#?}", request);
 
     // Attempt to compile the code
-    let path = match compile_c_file(&request.code, format!("/tmp/garbage{}.c", COUNTER.fetch_add(1, Ordering::SeqCst)).as_str()) {
+    let c_filename = format!("/tmp/garbage{}.c", COUNTER.fetch_add(1, Ordering::SeqCst));
+    if let Err(e) = fs::write(c_filename.clone(), request.code.clone()) {
+        return ApiReply {
+                compiled: false, 
+                success: false, 
+                runtime_us: 0, 
+                errors: format!("{:?}", e), 
+                test_cases: vec!()
+            }
+    }
+
+
+    let path = match compile_c_file(&c_filename.as_str(), format!("/tmp/garbage{}.c", COUNTER.fetch_add(1, Ordering::SeqCst)).as_str()) {
         Ok(path) => path,
         Err(s) => {
+            println!("Failed to compile {:?}", request.code);
             return ApiReply {
                 compiled: false, 
                 success: false, 
@@ -99,6 +113,7 @@ fn process_reply(request: ApiRequest) -> ApiReply {
     // Attempt to run the code
     // TODO: Actually use challenge name
     if let Err(e) = create_runner_safe(path.to_str().unwrap_or(""), request.constraints.cpu, request.constraints.ram, 1) {
+        println!("Failed to run {:?}", request.code);
         return ApiReply {
             compiled: true, 
             success: false, 
@@ -185,6 +200,7 @@ pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Infall
 
     // really trusting this not to explode
     let default_reply = Response::builder().status(500).body("Failed".into()).unwrap();
+    println!("{:?}", req);
 
     let mut response = match (method, endpoint.path()) {
         // Handle OPTIONS preflight
@@ -194,7 +210,7 @@ pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Infall
             .unwrap_or(default_reply),
 
         // Submit code
-        (Method::POST, "submit") => {
+        (Method::POST, "/submit") => {
             match validate_request(req).await {
                 Ok(json) => {
                     let reply = process_reply(json);
@@ -219,7 +235,7 @@ pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Infall
         }
 
         // ai garbage wrapper
-        (Method::POST, "ai") => {
+        (Method::POST, "/ai") => {
             match validate_ai_request(req).await {
                 Ok(json) => {
                     let reply = process_ai_reply(json).await;
