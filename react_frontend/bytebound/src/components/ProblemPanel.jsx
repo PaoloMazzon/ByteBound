@@ -53,7 +53,7 @@ export default function ProblemPanel(problemNumber) {
   };
 
   return (
-    <div className="flex-col flex-1 overflow-hidden">
+    <div className="flex-col flex-1 overflow-y-auto bg-gray-800 border-r border-gray-700">
       {/* Left Panel - Problem Description */}
       <div className="bg-gray-800 overflow-y-auto border-r border-gray-700">
         <div className="p-5">

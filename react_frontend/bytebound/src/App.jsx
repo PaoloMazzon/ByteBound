@@ -69,7 +69,7 @@ export default function LeetCodeClone() {
         challenge_name: "challenge"
       };
 
-      const response = await fetch('http://localhost:3000/submit', {
+      const response = await fetch('http://3.129.9.220/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody)
@@ -79,13 +79,13 @@ export default function LeetCodeClone() {
       if (response.ok) {
         const data = await response.json();
         const soln = {
-          compiled: soln.compiled,
-          errors: soln.errors,
-          runtime_us: soln.runtime_us,
-          success: soln.success,
-          test_cases: soln.test_cases
+          compiled: data.compiled,
+          errors: data.errors,
+          runtime_us: data.runtime_us,
+          success: data.success,
+          test_cases: data.test_cases
         };
-        console.log(response);
+        console.log(data);
       } else {
         throw new Error('Server Call Failed');
       }
@@ -137,7 +137,7 @@ export default function LeetCodeClone() {
         {/* Middle Panel - Code Editor */}
         <div className="flex-1 flex flex-col bg-gray-900">
           <div className="bg-gray-800 px-4 py-2 border-b border-gray-700">
-            <span className="text-sm text-gray-400">Python</span>
+            <span className="text-sm text-gray-400">C</span>
           </div>
           <textarea
             defaultValue={code}
@@ -147,7 +147,7 @@ export default function LeetCodeClone() {
             style={{ fontFamily: 'Monaco, Consolas, "Courier New", monospace' }}
           />
           <div>
-            <CodeOutputBox code={"Output will be displayed here..."} />
+            <CodeOutputBox soln={"Output"} />
           </div>
         </div>
 
