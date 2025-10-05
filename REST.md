@@ -4,7 +4,10 @@ change the internal code handling the APIs.
 ```json
 // request
 {
-  "constraints": { "cpu": "mhz", "ram": "bytes"},
+  "constraints": { 
+  	"cpu": 500, // in mhz
+  	"ram": 1000 // in bytes
+  },
   "code": "...",
   "challenge_name": "challenge"
 }

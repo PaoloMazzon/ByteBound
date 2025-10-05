@@ -1,24 +1,39 @@
 use std::convert::Infallible;
-
 use hyper::{header, Body, Method, Request, Response};
 use hyper::body::to_bytes;
 use anyhow::anyhow;
+use serde::Deserialize;
+
+#[allow(dead_code)]
+#[derive(Deserialize, Debug)]
+struct ApiRequest {
+    constraints: Constraints,
+    code: String,
+    challenge_name: String,
+}
+
+#[allow(dead_code)]
+#[derive(Deserialize, Debug)]
+struct Constraints {
+    cpu: i64,
+    ram: i64,
+}
 
 /// Returns a json guaranteed to contain all necessary fields if the request
 /// is valid, otherwise returns an error
-async fn validate_request(req: Request<Body>) -> Result<serde_json::Value, anyhow::Error> {
+async fn validate_request(req: Request<Body>) -> Result<ApiRequest, anyhow::Error> {
     let bytes = to_bytes(req.into_body()).await?;
     let string = String::from_utf8(bytes.to_vec())
         .map_err(|e| anyhow!("{:?}", e))?;
-    let json = serde_json::from_str(&string)?;
-
-    // TODO: Validate the json is valid according to REST.md
+    let json: ApiRequest = serde_json::from_str(&string)?;
 
     Ok(json)
 }
 
-fn process_reply(json: serde_json::Value) -> Response<Body> {
+fn process_reply(request: ApiRequest) -> Response<Body> {
     // the json passed to this function is guaranteed to be valid
+
+    println!("Request: {:#?}", request);
 
     Response::new("body".into())
 }
