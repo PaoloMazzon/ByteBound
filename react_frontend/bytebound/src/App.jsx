@@ -38,7 +38,7 @@ export default function ByteCode() {
 
     try {
       // Replace with your AI API endpoint
-      const response = await fetch('http://ec2-3-129-9-220.us-east-2.compute.amazonaws.com/ai', {
+      const response = await fetch('http://ec2-3-129-9-220.us-east-2.compute.amazonaws.com:3000/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({prompt: message})
@@ -76,7 +76,7 @@ export default function ByteCode() {
         challenge_name: "fib1"
       };
 
-      const response = await fetch('http://ec2-3-129-9-220.us-east-2.compute.amazonaws.com/submit', {
+      const response = await fetch('http://ec2-3-129-9-220.us-east-2.compute.amazonaws.com:3000/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody)
