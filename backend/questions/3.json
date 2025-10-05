@@ -1,0 +1,26 @@
+{
+  "problem": {
+    "title": "Two Sum",
+    "description": "Given an array of integers nums and an integer target, return the indices of the two numbers in the array that add up to target. You may assume that each input has exactly one solution, and you may not use the same element twice.",
+    "question": "Find the indices of two numbers that sum to the target value."
+  },
+  "examples": [
+    {
+      "input": "nums = [2, 7, 11, 15], target = 9",
+      "output": "[0, 1]",
+      "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]"
+    },
+    {
+      "input": "nums = [3, 2, 4], target = 6",
+      "output": "[1, 2]",
+      "explanation": "nums[1] + nums[2] == 6"
+    },
+    {
+      "input": "nums = [3, 3], target = 6",
+      "output": "[0, 1]",
+      "explanation": "The two threes at different indices sum to 6"
+    }
+  ],
+  "difficulty": "Easy",
+  "topics": ["Arrays", "Hash Tables", "Two Pointers", "Algorithm Optimization"]
+}

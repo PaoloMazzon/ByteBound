@@ -1,0 +1,26 @@
+{
+  "problem": {
+    "title": "Fibonacci Climbing Stairs",
+    "description": "You are climbing a staircase with n steps. Each time you can either climb 1 step or 2 steps.",
+    "question": "In how many distinct ways can you climb to the top?"
+  },
+  "examples": [
+    {
+      "input": "n = 2",
+      "output": "2",
+      "explanation": "Two ways to climb: (1+1) or (2)"
+    },
+    {
+      "input": "n = 3",
+      "output": "3",
+      "explanation": "Three ways to climb: (1+1+1), (1+2), or (2+1)"
+    },
+    {
+      "input": "n = 5",
+      "output": "8",
+      "explanation": "Eight different combinations of steps"
+    }
+  ],
+  "difficulty": "Medium",
+  "topics": ["Dynamic Programming", "Fibonacci Sequence", "Recursion", "Optimization"]
+}
