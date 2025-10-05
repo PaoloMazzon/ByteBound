@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Code, CheckCircle } from 'lucide-react';
 import './App.css'
+import ProblemPanel from './components/ProblemPanel.jsx'
 
 import CodeOutputBox from './components/OutpuBox.jsx';
 
@@ -33,7 +34,7 @@ export default function LeetCodeClone() {
       const response = await fetch('http://localhost:3000/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, code })
+        body: JSON.stringify({prompt: message})
       });
 
       if (response.ok) {
@@ -61,10 +62,10 @@ export default function LeetCodeClone() {
 
   const handleSubmit = async () => {
     try {
-      // Replace with your AI API endpoint
+
       const requestBody = {
         constraints: { cpu: 1, ram: 1 },
-        code: code,               // assuming `code` is your code string
+        code: code,
         challenge_name: "challenge"
       };
 
@@ -96,6 +97,7 @@ export default function LeetCodeClone() {
           success: false,
           test_cases: []
         };
+        console.log("response not okay")
     }
   };
 
@@ -129,68 +131,9 @@ export default function LeetCodeClone() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden ">
-        {/* Left Panel - Problem Description */}
-        <div className="w-1/3 bg-gray-800 overflow-y-auto border-r border-gray-700">
-          <div className="p-6">
-            <h2 className="text-2xl font-bold text-white mb-4">1. Two Sum</h2>
-            
-            <div className="mb-6">
-              <span className="inline-block px-3 py-1 bg-green-900 text-green-300 rounded-full text-sm font-medium">
-                Easy
-              </span>
-            </div>
-
-            <div className="text-gray-300 space-y-4">
-              <p>
-                Given an array of integers <code className="bg-gray-700 px-2 py-1 rounded">nums</code> and 
-                an integer <code className="bg-gray-700 px-2 py-1 rounded">target</code>, return indices 
-                of the two numbers such that they add up to target.
-              </p>
-
-              <p>
-                You may assume that each input would have exactly one solution, and you may not use 
-                the same element twice.
-              </p>
-
-              <p>You can return the answer in any order.</p>
-
-              <div className="bg-gray-900 p-4 rounded-lg mt-6">
-                <p className="text-white font-semibold mb-2">Example 1:</p>
-                <pre className="text-sm">
-                  <div className="text-gray-400">Input:</div>
-                  <div>nums = [2,7,11,15], target = 9</div>
-                  <div className="text-gray-400 mt-2">Output:</div>
-                  <div>[0,1]</div>
-                  <div className="text-gray-400 mt-2 ">Explanation:</div>
-                  <div className="mx-auto">Because nums[0] + nums[1] == 9, we return [0, 1].</div>
-                </pre>
-              </div>
-
-              <div className="bg-gray-900 p-4 rounded-lg mt-4">
-                <p className="text-white font-semibold mb-2">Example 2:</p>
-                <pre className="text-sm">
-                  <div className="text-gray-400">Input:</div>
-                  <div>nums = [3,2,4], target = 6</div>
-                  <div className="text-gray-400 mt-2">Output:</div>
-                  <div>[1,2]</div>
-                </pre>
-              </div>
-
-              <div className="mt-6">
-                <p className="text-white font-semibold mb-2">Constraints:</p>
-                <ul className="list-disc list-inside space-y-1 text-sm">
-                  <li>2 ≤ nums.length ≤ 10⁴</li>
-                  <li>-10⁹ ≤ nums[i] ≤ 10⁹</li>
-                  <li>-10⁹ ≤ target ≤ 10⁹</li>
-                  <li>Only one valid answer exists.</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-
+    {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden">
+        {ProblemPanel(1)}
         {/* Middle Panel - Code Editor */}
         <div className="flex-1 flex flex-col bg-gray-900">
           <div className="bg-gray-800 px-4 py-2 border-b border-gray-700">
