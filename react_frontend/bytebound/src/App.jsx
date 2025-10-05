@@ -2,18 +2,24 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Code, CheckCircle } from 'lucide-react';
 import './App.css'
 import ProblemPanel from './components/ProblemPanel.jsx'
+import preamble from './assets/preamble.js'
+import q1 from './assets/q1.json'
 
 import CodeOutputBox from './components/OutpuBox.jsx';
 
-export default function LeetCodeClone() {
-  const [code, setCode] = useState(`function twoSum(nums, target) {
+export default function ByteCode() {
+  const [code, setCode] = useState(`int main() {
   // Write your solution here
+  return 0;
   
 }`);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef(null);
+  const [ram, setRam] = useState(256000);
+  const [cpu, setCpu] = useState(500);
+
 
   // Auto-scroll chat to bottom
   useEffect(() => {
@@ -22,7 +28,8 @@ export default function LeetCodeClone() {
 
   const sendMessageToAI = async (message) => {
     if (!message.trim()) return;
-
+    let prompt = preamble + '\nThis is the task information:\n' + JSON.stringify(q1) + '\nThis is the user\'s code:\n' + code + '\nThis is the RAM req in MB: ' + ram + '\nThis is the CPU req in MHz: ' + cpu
+    console.log(prompt)
     // Add user message
     const userMessage = { text: message, isUser: true, timestamp: new Date() };
     setMessages(prev => [...prev, userMessage]);
@@ -31,7 +38,7 @@ export default function LeetCodeClone() {
 
     try {
       // Replace with your AI API endpoint
-      const response = await fetch('http://localhost:3000/ai', {
+      const response = await fetch('http://ec2-3-129-9-220.us-east-2.compute.amazonaws.com/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({prompt: message})
@@ -64,12 +71,12 @@ export default function LeetCodeClone() {
     try {
 
       const requestBody = {
-        constraints: { cpu: 1, ram: 1 },
+        constraints: { cpu: cpu, ram: ram * 1000 },
         code: code,
-        challenge_name: "challenge"
+        challenge_name: "fib1"
       };
 
-      const response = await fetch('http://localhost:3000/submit', {
+      const response = await fetch('http://ec2-3-129-9-220.us-east-2.compute.amazonaws.com/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody)
@@ -115,19 +122,46 @@ export default function LeetCodeClone() {
       {/*This is for header styling */}
 
       <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
-        <div className="flex items-center justify-between ">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Code className="text-green-400" size={28} />
-            <h1 className="text-2xl font-bold text-white ">ByteBound</h1>
+            <h1 className="text-2xl font-bold text-white">ByteBound</h1>
           </div>
-         <button
-      onClick={handleSubmit}
-      className="flex items-center gap-2 bg-green-400 hover:bg-green-700 text-black px-6 py-2 rounded-lg font-medium"
-      >
-
-            <CheckCircle size={20} />
-            Submit
-          </button>
+          
+          <div className="flex items-center gap-4">
+            {/* RAM Input */}
+            <div className="flex items-center gap-2">
+              <label className="text-gray-400 text-sm">RAM (MB):</label>
+              <input
+                type="number"
+                value={ram}
+                onChange={(e) => setRam(e.target.value)}
+                placeholder="bytes"
+                className="w-24 bg-gray-700 text-white px-3 py-1.5 rounded border border-gray-600 focus:outline-none focus:border-green-400 text-sm"
+              />
+            </div>
+            
+            {/* CPU Input */}
+            <div className="flex items-center gap-2">
+              <label className="text-gray-400 text-sm">CPU (MHz):</label>
+              <input
+                type="number"
+                value={cpu}
+                onChange={(e) => setCpu(e.target.value)}
+                placeholder="MHz"
+                className="w-24 bg-gray-700 text-white px-3 py-1.5 rounded border border-gray-600 focus:outline-none focus:border-green-400 text-sm"
+              />
+            </div>
+            
+            {/* Submit Button */}
+            <button
+              onClick={handleSubmit}
+              className="flex items-center gap-2 bg-green-400 hover:bg-green-500 text-black px-6 py-2 rounded-lg font-medium transition-colors"
+            >
+              <CheckCircle size={20} />
+              Submit
+            </button>
+          </div>
         </div>
       </header>
 
@@ -137,7 +171,7 @@ export default function LeetCodeClone() {
         {/* Middle Panel - Code Editor */}
         <div className="flex-1 flex flex-col bg-gray-900">
           <div className="bg-gray-800 px-4 py-2 border-b border-gray-700">
-            <span className="text-sm text-gray-400">Python</span>
+            <span className="text-sm text-gray-400">C</span>
           </div>
           <textarea
             defaultValue={code}
