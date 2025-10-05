@@ -47,7 +47,7 @@ export default function ByteCode() {
       if (response.ok) {
         const data = await response.json();
         const aiMessage = {
-          text: data.response || 'No response from AI',
+          text: data.text.text || 'No response from AI',
           isUser: false,
           timestamp: new Date()
         };
