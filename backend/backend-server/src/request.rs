@@ -92,7 +92,15 @@ pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Infall
         Method::POST => {
             match json_potential {
                 Ok(json) => {
-                    let body = serde_json::to_string(&process_reply(json)).unwrap_or("{}".to_string());
+                    let reply = process_reply(json);
+                    let body = match serde_json::to_string(&reply) {
+                        Ok(string) => string,
+                        Err(e) => {
+                            println!("Failed to parse json {:#?}, {:?}", reply, e);
+                            "null".to_string()
+                        }
+                    };
+
                     Response::builder()
                              .status(200)
                              .body(body.into())
