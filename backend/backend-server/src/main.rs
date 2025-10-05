@@ -10,7 +10,7 @@ use std::convert::Infallible;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // address to bind to
-    let addr = ([127, 0, 0, 1], 3000).into();
+    let addr = ([0, 0, 0, 0], 3000).into();
 
     // a MakeService closure — constructs a new service for each connection
     let make_svc = make_service_fn(|_conn| async {
