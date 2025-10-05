@@ -14,9 +14,3 @@ fn compile_c_file(c_file: &str, output_file: &str) -> Result<PathBuf, String> {
 
     Ok(PathBuf::from(output_file))
 }
-
-// Testing
-fn main() {
-    let compiled = compile_c_file("test.c", "test").unwrap();
-    println!("{}", compiled.display());
-}
