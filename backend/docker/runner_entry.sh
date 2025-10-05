@@ -7,10 +7,7 @@ MEMORY_LIMIT="$3"
 # Limit virtual memory
 ulimit -v $MEMORY_LIMIT
 
-# goofy ahh math to get cpu percent assuming 2ghz clock
-echo $@
-ls
-cpulimit -l $CPU_LIMIT /$1
+cpulimit -l $CPU_LIMIT $1
 
 exit
 

@@ -84,6 +84,7 @@ export default function LeetCodeClone() {
           success: soln.success,
           test_cases: soln.test_cases
         };
+        console.log(response);
       } else {
         throw new Error('Server Call Failed');
       }
