@@ -3,6 +3,12 @@ use hyper::{header, Body, Method, Request, Response};
 use hyper::body::to_bytes;
 use anyhow::anyhow;
 use serde::{Serialize, Deserialize};
+use dotenvy::dotenv;
+use gemini_client_rs::{
+    types::{GenerateContentRequest},
+    GeminiClient
+};
+use serde_json::{json};
 
 /// AI request
 #[allow(dead_code)]
@@ -79,12 +85,42 @@ fn process_reply(request: ApiRequest) -> ApiReply {
     }
 }
 
-/// Top-level ai processing function
-fn process_ai_reply(request: ApiAiRequest) -> ApiAiReply {
-    // TODO: This
-    ApiAiReply {
-        reply: "".to_string()
+/// Slightly less top-level ai processing function
+async fn process_ai_reply_less(request: ApiAiRequest) -> Result<ApiAiReply, Box<dyn std::error::Error>> {
+    dotenv().ok();
+    let api_key = std::env::var("GEMINI_API_KEY")?;
+    let client = GeminiClient::new(api_key);
+    let model_name = "gemini-2.5-flash";
+    
+    // Create a single request with just the user's message
+    let req_json = json!({
+        "contents": [{
+            "parts": [{"text": request.prompt}],
+            "role": "user"
+        }]
+    });
+    
+    let request: GenerateContentRequest = serde_json::from_value(req_json)?;
+    let response = client.generate_content(model_name, &request).await?;
+    
+    // Extract the text response
+    let mut response_text = String::new();
+    for candidate in &response.candidates {
+        for part in &candidate.content.parts {
+            let s = serde_json::to_string(&part.data).unwrap_or("".to_string());
+            response_text.push_str(&s);
+        }
     }
+    
+    // Return the AI response
+    Ok(ApiAiReply {
+        reply: response_text,
+    })
+}
+
+/// Top-level ai processing function
+async fn process_ai_reply(request: ApiAiRequest) -> ApiAiReply {
+    process_ai_reply_less(request).await.unwrap_or(ApiAiReply { reply: "Failed to connect to Gemini.".to_string() })
 }
 
 /// Returns a json guaranteed to contain all necessary fields if the request
@@ -152,7 +188,7 @@ pub async fn handle_request(req: Request<Body>) -> Result<Response<Body>, Infall
         (Method::POST, "ai") => {
             match validate_ai_request(req).await {
                 Ok(json) => {
-                    let reply = process_ai_reply(json);
+                    let reply = process_ai_reply(json).await;
                     let body = match serde_json::to_string(&reply) {
                         Ok(string) => string,
                         Err(e) => {

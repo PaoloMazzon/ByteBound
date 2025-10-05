@@ -5,6 +5,7 @@ Run the following commands on the server to set it up
 docker build -t server -f server.Dockerfile .
 docker build -t runner -f runner.Dockerfile .
 docker run -d --rm --volume $(pwd)/backend.log:/app/backend.log --name server server
+docker cp API_KEY_PATH server:/app/.env
 ```
 
 Kill it later simply with 

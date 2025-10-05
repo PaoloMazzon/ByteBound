@@ -40,7 +40,7 @@ RUN apk add --no-cache \
     musl-dev \
     make \
     bash \
-    nginx \
+    python3 \
     && mkdir -p /run/docker
 WORKDIR /app
 
@@ -54,6 +54,7 @@ COPY --from=build /app/backend/backend-server/target/x86_64-unknown-linux-musl/r
 COPY --from=build /app/react_frontend/bytebound/dist/ /app/
 
 # Entrypoint stuff
+COPY server.py /app/server.py
 COPY server_entry.sh /app/entry.sh
 RUN chmod 777 /app/entry.sh
 ENTRYPOINT ["/app/entry.sh"]

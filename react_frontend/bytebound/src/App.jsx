@@ -30,7 +30,7 @@ export default function LeetCodeClone() {
 
     try {
       // Replace with your AI API endpoint
-      const response = await fetch('http://localhost:3001/chat', {
+      const response = await fetch('http://localhost:3000/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message, code })
@@ -68,7 +68,7 @@ export default function LeetCodeClone() {
         challenge_name: "challenge"
       };
 
-      const response = await fetch('http://localhost:3000', {
+      const response = await fetch('http://localhost:3000/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody)
@@ -196,7 +196,7 @@ export default function LeetCodeClone() {
             <span className="text-sm text-gray-400">Python</span>
           </div>
           <textarea
-            value={code}
+            defaultValue={code}
             onChange={(e) => setCode(e.target.value)}
             className="flex-1 bg-gray-900 text-gray-100 font-mono text-sm p-4 resize-none focus:outline-none"
             spellCheck="false"

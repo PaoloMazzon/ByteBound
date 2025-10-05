@@ -3,10 +3,12 @@ set -e
 
 BINARY_PATH="$1"
 CPU_LIMIT="$2"
-MEMORY_LIMT="$3"
+MEMORY_LIMIT="$3"
 
 CGROUP="/sys/fs/cgroup/myrunner"
 mkdir -p "$CGROUP"
+
+echo "+cpu +memory" > /sys/fs/cgroup/cgroup.subtree_control
 
 # Memory limit 256 MB
 echo $(($MEMORY_LIMIT*1024*1024)) > "$CGROUP/memory.max"
@@ -24,7 +26,8 @@ echo "Memory limit: $(cat $CGROUP/memory.max)"
 echo "CPU quota: $(cat $CGROUP/cpu.max)"
 echo "Processes in cgroup: $(cat $CGROUP/cgroup.procs)"
 echo "Current cgroup: $(cat /proc/$$/cgroup)"
+cat "$CGROUP/cpu.stat" 2>/dev/null || echo "cpu.stat not available yet"
 echo "==========================="
 
 # Run the binary
-exec "$BINARY_PATH" "${@:2}"
+exec "$BINARY_PATH" "${@:4}"

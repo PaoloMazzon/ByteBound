@@ -1,0 +1,26 @@
+{
+  "problem": {
+    "title": "Dining Philosophers Problem",
+    "description": "Five philosophers sit around a circular dining table. Each philosopher has a plate of spaghetti in front of them. There is one fork placed between each pair of adjacent philosophers (5 forks total). A philosopher needs TWO forks (left and right) to eat.",
+    "question": "How can you prevent deadlock and starvation while allowing philosophers to eat?"
+  },
+  "examples": [
+    {
+      "input": "All 5 philosophers try to pick up their left fork simultaneously",
+      "output": "Deadlock occurs",
+      "explanation": "Each philosopher holds one fork and waits forever for the other fork, creating a circular wait condition"
+    },
+    {
+      "input": "Philosopher 0 and 2 are eating (using forks 0-1 and 2-3)",
+      "output": "Valid state",
+      "explanation": "Non-adjacent philosophers can eat simultaneously without conflict"
+    },
+    {
+      "input": "Use resource hierarchy: always pick up lower-numbered fork first",
+      "output": "Deadlock prevented",
+      "explanation": "Philosopher 4 picks up fork 0 before fork 4, breaking the circular wait"
+    }
+  ],
+  "difficulty": "Hard",
+  "topics": ["Concurrency", "Deadlock Prevention", "Synchronization", "Mutual Exclusion", "Semaphores", "Operating Systems"]
+}
