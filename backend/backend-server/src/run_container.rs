@@ -3,7 +3,7 @@ use std::io;
 use std::path::Path;
 
 pub fn create_runner(binary_path: &str) -> io::Result<()> {
-    let host_bin_dir = "../docker";
+    let host_bin_dir = "/var/run/untrusted";
     //let bin_path = Path::new(binary_path);
 
     // Ensure the binary filename is valid

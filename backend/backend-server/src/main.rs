@@ -34,14 +34,23 @@ mod tests {
     use crate::compile::compile_c_file;
     use std::fs;
     use std::path::Path;
-    const TMP_DIR: &str = "/tmp/untrusted";
+    use std::process::Command;
+    const TMP_DIR: &str = "/var/run/untrusted";
 
     #[test]
     fn gavin_test() -> Result<(), anyhow::Error> {
         // Create path for binary if path not created
         let path = Path::new(TMP_DIR);
         if !path.exists() {
+            println!("Dir doesn't exist, creating it.");
             fs::create_dir_all(path)?;
+            println!("Dir created.");
+        } else {
+            println!("Dir already exists");
+        }
+
+        if path.exists() {
+            println!("Confirmed: {} exists", TMP_DIR);
         }
 
         // Compile c file
@@ -54,6 +63,8 @@ mod tests {
             }
             Err(e) => println!("Error: {}", e), // TODO : Pass error to user if it didn't compile through JSON
         }
+
+        
 
         let mut temp_string = TMP_DIR.to_string();
         temp_string.push_str("/temp");
