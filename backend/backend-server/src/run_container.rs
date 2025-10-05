@@ -1,33 +1,40 @@
 use std::process::Command;
 use std::io;
 use std::path::Path;
+use anyhow::anyhow;
 
-pub fn create_runner_safe(binary_path: &str, cpu_limit: i64, memory_limit: i64, problem_index: i32) -> io::Result<()> {
+pub fn create_runner_safe(binary_path: &str, cpu_limit: i64, memory_limit: i64, problem_index: i32) -> Result<String, anyhow::Error> {
     let normalized_cpu_limit = (cpu_limit as f64 / 1000.0) / 2.0;
     let actual_mem = memory_limit / 1024;
 
-     let status = Command::new("timeout")
+    let question = format!("/questions/{}.json:/question", problem_index);
+    let binary_path_volume = format!("{}:/binary", binary_path);
+    let mut binding = Command::new("timeout");
+    let output = binding
         .args([
             "20s",
             "docker",
             "run",
             "--rm",
             "-v",
-            &format!("/questions/{}.json:/question", problem_index),
+            "/output.txt",
             "-v",
-            &format!("{}:/binary", binary_path),
+            &question,
+            "-v",
+            &binary_path_volume,
             "runner",
-            &format!("/binary"),
+            "/binary",
             &normalized_cpu_limit.to_string(),
             &actual_mem.to_string(),
-        ])
-        .status()?; // execute command
+        ]).output()?;
+    let status = output.status;
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
 
-     if !status.success() {
-        return Err(io::Error::new(io::ErrorKind::Other, "Runner container execution failed"));
+    match status.success() {
+        true => Ok(stdout.to_string()),
+        false => Err(anyhow!("Runner container execution failed, stdout: {:?}\nstderr: {:?}", stdout, stderr))
     }
-
-    Ok(())
 }
 
 
