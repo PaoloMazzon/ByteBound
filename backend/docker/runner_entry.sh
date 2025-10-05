@@ -2,15 +2,17 @@
 set -e
 
 BINARY_PATH="$1"
+CPU_LIMIT="$2"
+MEMORY_LIMT="$3"
 
 CGROUP="/sys/fs/cgroup/myrunner"
 mkdir -p "$CGROUP"
 
 # Memory limit 256 MB
-echo $((256*1024*1024)) > "$CGROUP/memory.max"
+echo $(($MEMORY_LIMIT*1024*1024)) > "$CGROUP/memory.max"
 
 # CPU limit 50% (quota period 100000 µs)
-echo "50000" > "$CGROUP/cpu.max"
+echo "$CPU_LIMIT" > "$CGROUP/cpu.max"
 
 # Move this shell (and child processes) into the cgroup
 echo $$ > "$CGROUP/cgroup.procs"
