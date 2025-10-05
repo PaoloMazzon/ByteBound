@@ -2,7 +2,7 @@ use std::process::Command;
 use std::io;
 use std::path::Path;
 
-pub fn create_runner(binary_path: &str) -> io::Result<()> {
+pub fn create_runner(binary_path: &str, cpu_limit: &u32, memory_limit: &u16) -> io::Result<()> {
     let host_bin_dir = "/var/run/untrusted";
     //let bin_path = Path::new(binary_path);
 
@@ -24,6 +24,8 @@ pub fn create_runner(binary_path: &str) -> io::Result<()> {
             &format!("{}:/host_bin", host_bin_dir),
             "runner",
             &format!("/host_bin/{}", file_name),
+            &cpu_limit.to_string(),
+            &memory_limit.to_string(),
         ])
         .status()?; // execute command
 

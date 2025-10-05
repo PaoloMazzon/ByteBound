@@ -71,7 +71,9 @@ mod tests {
         let bin_dir: &str = &temp_string;
 
 
-        match create_runner(bin_dir) {
+        let cpu_l: u32 = 50000;
+        let memory_l: u16 = 256;
+        match create_runner(bin_dir, &cpu_l, &memory_l) {
             Ok(_) => println!("Created runner."),
             Err(e) => println!("Error with runner creation: {}", e),
         }
