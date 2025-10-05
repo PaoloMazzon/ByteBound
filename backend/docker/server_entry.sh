@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 
-./server >> backend.log & 
-nginx -g 'daemon off;'
+# start backend
+./server >> backend.log &
+python3 server.py
