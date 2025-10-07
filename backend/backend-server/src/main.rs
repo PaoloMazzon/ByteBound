@@ -10,7 +10,6 @@ use hyper::{Server};
 use hyper::service::{make_service_fn, service_fn};
 use std::convert::Infallible;
 
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // address to bind to

@@ -2,7 +2,6 @@ use std::process::{Command};
 use std::path::PathBuf;
 use crate::output::CommandOutput;
 
-
 pub fn compile_c_file(c_file: &str, output_file: &str) -> Result<(PathBuf, CommandOutput), anyhow::Error> {
     let status = Command::new("gcc")
         .args(&["-static", "-o", output_file, c_file])
