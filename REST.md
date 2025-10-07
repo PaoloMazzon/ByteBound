@@ -23,11 +23,11 @@ change the internal code handling the APIs.
   // information on the running of the program (this is invalid if it didn't compile)
   "runner" {
     "success": true, // did the program crash in anyway
-    "runtime_us": 329814, // program runtime in microseconds
     "stdout": "",
     "stderr": "",
   },
-  "test_cases": [true, false, true, false, true] // whether or not each test case passed
+  "runtime_us": [329814, 329814], // program runtime in microseconds for each test case
+  "test_cases": ["123", "398"] // the output of each test case as a string
 }
 
 // POST /ai endpoint

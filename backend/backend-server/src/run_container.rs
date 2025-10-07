@@ -1,27 +1,19 @@
 use std::{process::Command};
-use crate::output::CommandOutput;
+use crate::{client_workspace::ClientWorkspace, output::CommandOutput};
 
-pub fn create_runner_safe(binary_path: &str, cpu_limit: i64, memory_limit: i64, problem_index: i32) -> Result<CommandOutput, anyhow::Error> {
+pub fn create_runner_safe(client: &ClientWorkspace, cpu_limit: i64, memory_limit: i64) -> Result<CommandOutput, anyhow::Error> {
     let normalized_cpu_limit = (cpu_limit as f64 / 1000.0) / 2.0;
     let actual_mem = memory_limit / 1024;
 
-    let question = format!("/questions/{}.json:/question", problem_index);
-    let binary_path_volume = format!("{}:/binary", binary_path);
-    let mut binding = Command::new("timeout");
-    let output = binding
+    let output = Command::new("timeout")
         .args([
             "20s",
             "docker",
             "run",
             "--rm",
             "-v",
-            "/output.txt",
-            "-v",
-            &question,
-            "-v",
-            &binary_path_volume,
+            client.docker_volume_flag().as_str(),
             "runner",
-            "/binary",
             &normalized_cpu_limit.to_string(),
             &actual_mem.to_string(),
         ]).output()?;

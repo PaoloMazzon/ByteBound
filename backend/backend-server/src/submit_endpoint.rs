@@ -1,11 +1,7 @@
-use std::{fs, sync::atomic::{AtomicUsize, Ordering}};
 use hyper::{body::to_bytes, Body, Request, Response, StatusCode};
 use serde::{Deserialize, Serialize};
 use spdlog::prelude::*;
-use crate::{compile::compile_c_file, run_container::create_runner_safe};
-
-// for unique filenames
-static COUNTER: AtomicUsize = AtomicUsize::new(0);
+use crate::{client_workspace::ClientWorkspace, compile::compile_c_file, run_container::create_runner_safe};
 
 /// Only needed by ApiRequest
 #[derive(Deserialize, Debug)]
@@ -55,9 +51,6 @@ struct ApiRunnerInfo {
 
     /// stderr output from the runner container
     stderr: String,
-
-    /// Runtime of the program in microseconds
-    runtime_us: u64
 }
 
 /// Represents the outgoing response, maps 1:1 to REST.md
@@ -69,8 +62,11 @@ struct ApiReply {
     /// Info from running the program
     pub runner: ApiRunnerInfo,
 
+    /// Runtime of the program in microseconds per test case
+    runtime_us: Vec<u64>,
+
     /// Whether or not each test case passed
-    pub test_cases: Vec<bool>
+    pub test_cases: Vec<String>
 }
 
 impl ApiReply {
@@ -81,13 +77,13 @@ impl ApiReply {
                 success: false,
                 stdout: String::new(),
                 stderr: String::new(),
-                runtime_us: 0,
             },
             compiler: ApiCompilerInfo { 
                 success: false, 
                 stdout: String::new(), 
                 stderr: String::new() 
             },
+            runtime_us: vec!(),
             test_cases: vec!()
         }
     }
@@ -95,16 +91,26 @@ impl ApiReply {
 
 /// Top-level function that gets an api request
 fn process_reply(request: ApiRequest) -> ApiReply {
+    // Get a workspace first
+    let client = match ClientWorkspace::new() {
+        Ok(c) => c,
+        Err(e) => {
+            let mut reply = ApiReply::blank();
+            reply.compiler.stderr = format!("{:?}", e);
+            return reply;
+        }
+    };
+
     // Attempt to compile the code
-    let c_filename = format!("/tmp/garbage{}.c", COUNTER.fetch_add(1, Ordering::SeqCst));
-    if let Err(e) = fs::write(c_filename.clone(), request.code.clone()) {
+    let c_filename = "user_code.c";
+    if let Err(e) = client.write_file(c_filename, request.code.as_str()) {
         let mut reply = ApiReply::blank();
         reply.compiler.stderr = format!("{:?}", e);
         return reply;
     }
 
 
-    let (path, compiler_output) = match compile_c_file(&c_filename.as_str(), format!("/tmp/garbage{}.c", COUNTER.fetch_add(1, Ordering::SeqCst)).as_str()) {
+    let compiler_output = match compile_c_file(&client, c_filename) {
         Ok(path) => path,
         Err(e) => {
             debug!("Failed to compile {:?}", request.code);
@@ -121,20 +127,21 @@ fn process_reply(request: ApiRequest) -> ApiReply {
                 success: false,
                 stdout: String::new(),
                 stderr: String::new(),
-                runtime_us: 0,
             },
             compiler: ApiCompilerInfo { 
                 success: false, 
                 stdout: compiler_output.stdout,
                 stderr: compiler_output.stderr
             },
+            runtime_us: vec!(),
             test_cases: vec!()
         }
     }
 
+    // TODO: Copy the proper challenge to the workspace under the name `WORKSPACE/challenge.json`
+
     // Attempt to run the code
-    // TODO: Actually use challenge name
-    let runner_output = match create_runner_safe(path.to_str().unwrap_or(""), request.constraints.cpu, request.constraints.ram, 1) {
+    let runner_output = match create_runner_safe(&client, request.constraints.cpu, request.constraints.ram) {
         Ok(out) => out,
         Err(e) => {
             debug!("Failed to run {:?}", request.code);
@@ -151,13 +158,13 @@ fn process_reply(request: ApiRequest) -> ApiReply {
                 success: false,
                 stdout: runner_output.stdout,
                 stderr: runner_output.stderr,
-                runtime_us: 0,
             },
             compiler: ApiCompilerInfo { 
                 success: true, 
                 stdout: compiler_output.stdout,
                 stderr: compiler_output.stderr
             },
+            runtime_us: vec!(),
             test_cases: vec!()
         }
     }
@@ -169,13 +176,13 @@ fn process_reply(request: ApiRequest) -> ApiReply {
             success: true,
             stdout: runner_output.stdout,
             stderr: runner_output.stderr,
-            runtime_us: 0, // TODO: This
         },
         compiler: ApiCompilerInfo { 
             success: true, 
             stdout: compiler_output.stdout,
             stderr: compiler_output.stderr
         },
+        runtime_us: vec!(),
         test_cases: vec!()
     }
 }

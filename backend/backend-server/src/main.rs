@@ -4,6 +4,7 @@ mod run_container;
 mod submit_endpoint;
 mod ai_endpoint;
 mod output;
+mod client_workspace;
 
 use spdlog::prelude::*;
 use hyper::{Server};
