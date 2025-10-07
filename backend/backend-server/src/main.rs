@@ -3,6 +3,7 @@ mod compile;
 mod run_container;
 mod submit_endpoint;
 mod ai_endpoint;
+mod output;
 
 use spdlog::prelude::*;
 use hyper::{Server};

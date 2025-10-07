@@ -31,82 +31,151 @@ struct ApiRequest {
     pub challenge_name: String,
 }
 
+/// Information from running the compiler
+#[derive(Serialize, Debug)]
+struct ApiCompilerInfo {
+    /// Whether or not it successfully compiled
+    success: bool,
+
+    /// stdout output from the compiler
+    stdout: String,
+
+    /// stderr output from the compiler
+    stderr: String
+}
+
+/// Information from running the runner container
+#[derive(Serialize, Debug)]
+struct ApiRunnerInfo {
+    /// Whether or not it successfully ran
+    success: bool,
+
+    /// stdout output from the runner container
+    stdout: String,
+
+    /// stderr output from the runner container
+    stderr: String,
+
+    /// Runtime of the program in microseconds
+    runtime_us: u64
+}
+
 /// Represents the outgoing response, maps 1:1 to REST.md
 #[derive(Serialize, Debug)]
 struct ApiReply {
-    /// Whether or not the code successfully compiled
-    pub compiled: bool,
-
-    /// Whether or not the code ran successfully (not if it passed test cases)
-    pub success: bool,
-
-    /// How long it took to run the program inside the docker container (microseconds)
-    pub runtime_us: u64,
-
-    /// Any compiler or runtime errors
-    pub errors: String,
+    /// Info from compiling the program
+    pub compiler: ApiCompilerInfo,
+    
+    /// Info from running the program
+    pub runner: ApiRunnerInfo,
 
     /// Whether or not each test case passed
     pub test_cases: Vec<bool>
 }
 
+impl ApiReply {
+    /// Returns a new ApiReply with sensible defaults
+    pub fn blank() -> Self {
+        ApiReply {
+            runner: ApiRunnerInfo {
+                success: false,
+                stdout: String::new(),
+                stderr: String::new(),
+                runtime_us: 0,
+            },
+            compiler: ApiCompilerInfo { 
+                success: false, 
+                stdout: String::new(), 
+                stderr: String::new() 
+            },
+            test_cases: vec!()
+        }
+    }
+}
+
 /// Top-level function that gets an api request
 fn process_reply(request: ApiRequest) -> ApiReply {
-    debug!("Request: {:#?}", request);
-
     // Attempt to compile the code
     let c_filename = format!("/tmp/garbage{}.c", COUNTER.fetch_add(1, Ordering::SeqCst));
     if let Err(e) = fs::write(c_filename.clone(), request.code.clone()) {
-        return ApiReply {
-                compiled: false, 
-                success: false, 
-                runtime_us: 0, 
-                errors: format!("{:?}", e), 
-                test_cases: vec!()
-            }
+        let mut reply = ApiReply::blank();
+        reply.compiler.stderr = format!("{:?}", e);
+        return reply;
     }
 
 
-    let path = match compile_c_file(&c_filename.as_str(), format!("/tmp/garbage{}.c", COUNTER.fetch_add(1, Ordering::SeqCst)).as_str()) {
+    let (path, compiler_output) = match compile_c_file(&c_filename.as_str(), format!("/tmp/garbage{}.c", COUNTER.fetch_add(1, Ordering::SeqCst)).as_str()) {
         Ok(path) => path,
-        Err(s) => {
+        Err(e) => {
             debug!("Failed to compile {:?}", request.code);
-            return ApiReply {
-                compiled: false, 
-                success: false, 
-                runtime_us: 0, 
-                errors: s, 
-                test_cases: vec!()
-            }
+            let mut reply = ApiReply::blank();
+            reply.compiler.stderr = format!("{:?}", e);
+            return reply;
         }
     };
 
+    // Check if the compiler failed
+    if compiler_output.status != 0 {
+        return ApiReply {
+            runner: ApiRunnerInfo {
+                success: false,
+                stdout: String::new(),
+                stderr: String::new(),
+                runtime_us: 0,
+            },
+            compiler: ApiCompilerInfo { 
+                success: false, 
+                stdout: compiler_output.stdout,
+                stderr: compiler_output.stderr
+            },
+            test_cases: vec!()
+        }
+    }
+
     // Attempt to run the code
     // TODO: Actually use challenge name
-    let output;
-    match create_runner_safe(path.to_str().unwrap_or(""), request.constraints.cpu, request.constraints.ram, 1) {
-        Ok(stdout) => {
-            output = stdout;
-        },
+    let runner_output = match create_runner_safe(path.to_str().unwrap_or(""), request.constraints.cpu, request.constraints.ram, 1) {
+        Ok(out) => out,
         Err(e) => {
             debug!("Failed to run {:?}", request.code);
-            return ApiReply {
-                compiled: true, 
-                success: false, 
-                runtime_us: 0, 
-                errors: format!("{:?}", e), 
-                test_cases: vec!()
-            }
+            let mut reply = ApiReply::blank();
+            reply.compiler.stderr = format!("{:?}", e);
+            return reply;
+        }
+    };
+
+    // Check if the runner failed
+    if runner_output.status != 0 {
+        return ApiReply {
+            runner: ApiRunnerInfo {
+                success: false,
+                stdout: runner_output.stdout,
+                stderr: runner_output.stderr,
+                runtime_us: 0,
+            },
+            compiler: ApiCompilerInfo { 
+                success: true, 
+                stdout: compiler_output.stdout,
+                stderr: compiler_output.stderr
+            },
+            test_cases: vec!()
         }
     }
 
     // TODO: Test cases
 
-    ApiReply { 
-        compiled: true, 
-        success: true, 
-        runtime_us: 0, 
-        errors: output, 
+    ApiReply {
+        runner: ApiRunnerInfo {
+            success: true,
+            stdout: runner_output.stdout,
+            stderr: runner_output.stderr,
+            runtime_us: 0, // TODO: This
+        },
+        compiler: ApiCompilerInfo { 
+            success: true, 
+            stdout: compiler_output.stdout,
+            stderr: compiler_output.stderr
+        },
         test_cases: vec!()
     }
 }
