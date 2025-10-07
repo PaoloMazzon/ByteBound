@@ -6,7 +6,7 @@ FROM alpine:latest
 RUN apk add --no-cache bash cpulimit
 
 # Copy entrypoint and make it runnable
-COPY runner_entry.sh /usr/local/bin/runner_entry.sh
+COPY docker/runner_entry.sh /usr/local/bin/runner_entry.sh
 RUN chmod 777 /usr/local/bin/runner_entry.sh
 
 # Setup entrypoints to passthrough parameters

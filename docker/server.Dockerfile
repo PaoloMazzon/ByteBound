@@ -5,7 +5,7 @@ FROM rust:latest AS build
 
 # Get tools & the repo
 RUN apt-get update && apt-get install -y git npm musl-tools && rm -rf /var/lib/apt/lists/*
-RUN git clone https://github.com/PaoloMazzon/storm-surge-team.git /app
+COPY ./ /app
 
 # Build cargo
 WORKDIR /app/backend/backend-server
@@ -53,6 +53,6 @@ COPY --from=build /app/backend/backend-server/target/x86_64-unknown-linux-musl/r
 COPY --from=build /app/react_frontend/bytebound/dist/ /app/
 
 # Entrypoint stuff
-COPY server_entry.sh /app/entry.sh
+COPY docker/server_entry.sh /app/entry.sh
 RUN chmod 777 /app/entry.sh
 ENTRYPOINT ["/app/entry.sh"]
