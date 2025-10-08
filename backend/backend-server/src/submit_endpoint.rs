@@ -70,24 +70,6 @@ struct ApiReply {
 }
 
 impl ApiReply {
-    /// Returns a new ApiReply with sensible defaults
-    pub fn blank() -> Self {
-        ApiReply {
-            runner: ApiRunnerInfo {
-                success: false,
-                stdout: String::new(),
-                stderr: String::new(),
-            },
-            compiler: ApiCompilerInfo { 
-                success: false, 
-                stdout: String::new(), 
-                stderr: String::new() 
-            },
-            runtime_us: vec!(),
-            test_cases: vec!()
-        }
-    }
-
     pub fn compiler_error(error: String) -> Self {
         ApiReply {
             runner: ApiRunnerInfo {
@@ -123,16 +105,14 @@ async fn process_reply(request: ApiRequest) -> ApiReply {
     let c_filename = "user_code.c";
     let main_c = format!("/app/challenges/mains/main_{}.c", request.challenge_index);
     if let Err(e) = client.write_file(c_filename, request.code.as_str()) {
-        return ApiReply::compiler_error(format!("Failed to run compiler, {:?}", e));
+        return ApiReply::compiler_error(format!("Failed to write out user code, {:?}", e));
     }
 
     let compiler_output = match compile_c_file(&client, c_filename, main_c.as_str()) {
         Ok(path) => path,
         Err(e) => {
             debug!("Failed to compile {:?}", request.code);
-            let mut reply = ApiReply::blank();
-            reply.compiler.stderr = format!("{:?}", e);
-            return reply;
+            return ApiReply::compiler_error(format!("Failed to run compiler, {:?}", e));
         }
     };
 
@@ -159,9 +139,7 @@ async fn process_reply(request: ApiRequest) -> ApiReply {
         Ok(out) => out,
         Err(e) => {
             debug!("Failed to run {:?}", request.code);
-            let mut reply = ApiReply::blank();
-            reply.compiler.stderr = format!("{:?}", e);
-            return reply;
+            return ApiReply::compiler_error(format!("Failed to run user program, {:?}", e));
         }
     };
 
@@ -184,6 +162,7 @@ async fn process_reply(request: ApiRequest) -> ApiReply {
     }
 
     // TODO: Read test cases from the workspace
+    // TODO: Read runtimes from the workspace
 
     ApiReply {
         runner: ApiRunnerInfo {

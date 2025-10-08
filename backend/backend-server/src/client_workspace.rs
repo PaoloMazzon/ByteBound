@@ -9,6 +9,9 @@ static G_COUNTER: AtomicUsize = AtomicUsize::new(0);
 pub struct ClientWorkspace {
     /// Directory where this client's files are
     dir: String,
+    
+    /// Index of this client
+    index: usize
 }
 
 impl ClientWorkspace {
@@ -19,13 +22,14 @@ impl ClientWorkspace {
         let dir = format!("/app/clients/client_{}", index);
         std::fs::create_dir_all(&dir)?;
         Ok(ClientWorkspace { 
-            dir
+            dir,
+            index
         })
     }
 
     /// Returns the docker volume mapping for this workspace (ie, /client/:/container/)
     pub fn docker_volume_flag(&self) -> String {
-        format!("{}:/client/", self.dir)
+        format!("/share_folder/client_{}/:/client/", self.index)
     }
 
     /// Attempts to write a string to a given filename in the client's unique directory

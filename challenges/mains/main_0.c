@@ -1,19 +1,23 @@
-int atoi(const char *str);
-int fprintf( FILE *stream, const char *format, ...);
-FILE *fopen(const char *filename, const char *mode);
-int fclose(FILE *stream);
+#include <stdio.h>
 int fib(int n);
 
 int main(int argc, const char *argv[]) {
-    const int val = atoi(argv[1]);
-    const int case = fib(val);
+    int val;
+    
+    if (sscanf(argv[1], "%d", &val) != 1) {
+        fprintf(stderr, "Failed to parse argv.\n");
+        return 1;
+    }
 
-    FILE *f = fopen("test_cases_output.txt", "a");
+    const int result = fib(val);
+
+    FILE *f = fopen("/client/test_cases_output.txt", "a");
     if (f) {
-        fprintf(f, "%i\n", case);
+        fprintf(f, "%i\n", result);
         fclose(f);
     } else {
         fprintf(stderr, "Failed to write test case.\n");
+        return 1;
     }
 
     return 0;

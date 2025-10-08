@@ -3,7 +3,7 @@
 FROM alpine:latest
 
 # Setup dependencies
-RUN apk add --no-cache bash cpulimit
+RUN apk add --no-cache bash cpulimit jq
 
 # Copy entrypoint and make it runnable
 COPY docker/runner_entry.sh /usr/local/bin/runner_entry.sh
