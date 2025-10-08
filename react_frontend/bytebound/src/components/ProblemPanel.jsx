@@ -3,7 +3,7 @@ import q1 from '../assets/q1.json';
 import q2 from '../assets/q2.json';
 import q3 from '../assets/q3.json';
 
-export default function ProblemPanel(problemNumber) {
+export default function ProblemPanel({problemNumber}) {
   const [problemData, setProblemData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,7 +16,9 @@ export default function ProblemPanel(problemNumber) {
             2: q2,
             3: q3
         }
+        console.log(problemNumber)
         let data = file_map[problemNumber]
+        console.log(data)
         setProblemData(data);
         setLoading(false);
       } catch (err) {
