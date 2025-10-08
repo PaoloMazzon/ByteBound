@@ -161,8 +161,63 @@ async fn process_reply(request: ApiRequest) -> ApiReply {
         }
     }
 
-    // TODO: Read test cases from the workspace
-    // TODO: Read runtimes from the workspace
+    // Grab runtimes from the runner
+    let runtime_file_string = match client.read_file("runtime.txt") {
+        Ok(s) => s,
+        Err(e) => {
+            debug!("Failed to get runtimes for code {:?}", request.code);
+            let mut stderr = runner_output.stderr.clone();
+            stderr.push_str(format!("Failed to get runtimes, {:?}", e).as_str());
+            return ApiReply {
+                runner: ApiRunnerInfo {
+                    success: true,
+                    stdout: runner_output.stdout,
+                    stderr: stderr,
+                },
+                compiler: ApiCompilerInfo { 
+                    success: true, 
+                    stdout: compiler_output.stdout,
+                    stderr: compiler_output.stderr
+                },
+                runtime_us: vec!(),
+                test_cases: vec!()
+            };
+        }
+    };
+
+    // Grab test case outputs from the runner
+    let test_output_file_string = match client.read_file("test_cases_output.txt") {
+        Ok(s) => s,
+        Err(e) => {
+            debug!("Failed to get test cases for code {:?}", request.code);
+            debug!("Failed to get runtimes for code {:?}", request.code);
+            let mut stderr = runner_output.stderr.clone();
+            stderr.push_str(format!("Failed to get test cases for code, {:?}", e).as_str());
+            return ApiReply {
+                runner: ApiRunnerInfo {
+                    success: true,
+                    stdout: runner_output.stdout,
+                    stderr: stderr,
+                },
+                compiler: ApiCompilerInfo { 
+                    success: true, 
+                    stdout: compiler_output.stdout,
+                    stderr: compiler_output.stderr
+                },
+                runtime_us: vec!(),
+                test_cases: vec!()
+            };
+        }
+    };
+    
+    let mut runtimes: Vec<u64> = runtime_file_string.split("\n")
+        .map(|s| s.parse().unwrap_or(0))
+        .collect();
+    let mut test_cases_outputs: Vec<String> = test_output_file_string.split("\n")
+        .map(|s| s.to_string())
+        .collect();
+    runtimes.pop();
+    test_cases_outputs.pop();
 
     ApiReply {
         runner: ApiRunnerInfo {
@@ -175,8 +230,8 @@ async fn process_reply(request: ApiRequest) -> ApiReply {
             stdout: compiler_output.stdout,
             stderr: compiler_output.stderr
         },
-        runtime_us: vec!(),
-        test_cases: vec!()
+        runtime_us: runtimes,
+        test_cases: test_cases_outputs
     }
 }
 

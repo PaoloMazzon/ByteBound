@@ -12,7 +12,7 @@ MEMORY_LIMIT="$2"
 for n in $(jq -r '.test_cases[].input' $CHALLENGE_PATH); do
     # Run the program and capture runtime -- TODO: Each test case
     start=$EPOCHREALTIME
-    cpulimit -l $CPU_LIMIT bash -c "ulimit -v $MEMORY_LIMIT; exec $BINARY_PATH $n"
+    bash -c "ulimit -v $MEMORY_LIMIT; exec cpulimit -l $CPU_LIMIT -- $BINARY_PATH $n"
     end=$EPOCHREALTIME
     elapsed_microseconds=$(echo "$end - $start" | bc -l | awk '{printf "%.0f\n", $1 * 1000000}')
     echo $elapsed_microseconds >> $RUNTIME_PATH
