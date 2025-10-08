@@ -175,7 +175,7 @@ async fn process_reply(request: ApiRequest) -> ApiReply {
                     stderr: stderr,
                 },
                 compiler: ApiCompilerInfo { 
-                    success: true, 
+                    success: false, 
                     stdout: compiler_output.stdout,
                     stderr: compiler_output.stderr
                 },
@@ -200,7 +200,7 @@ async fn process_reply(request: ApiRequest) -> ApiReply {
                     stderr: stderr,
                 },
                 compiler: ApiCompilerInfo { 
-                    success: true, 
+                    success: false, 
                     stdout: compiler_output.stdout,
                     stderr: compiler_output.stderr
                 },
