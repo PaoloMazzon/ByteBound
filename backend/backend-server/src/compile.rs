@@ -4,9 +4,9 @@ use crate::output::CommandOutput;
 
 /// Compiles a c file in a client workspace to the file "a.out" in that same workspace
 /// (ie, use client.realpath("a.out") to get the compiled file)
-pub fn compile_c_file(client: &ClientWorkspace, c_file: &str) -> Result<CommandOutput, anyhow::Error> {
+pub fn compile_c_file(client: &ClientWorkspace, c_file: &str, main_file: &str) -> Result<CommandOutput, anyhow::Error> {
     let status = Command::new("gcc")
-        .args(&["-static", "-o", client.realpath("a.out").as_str(), client.realpath(c_file).as_str()])
+        .args(&["-static", "-o", client.realpath("a.out").as_str(), client.realpath(c_file).as_str(), main_file])
         .output()?;
 
     let stderr = String::from_utf8_lossy(status.stderr.as_slice());

@@ -24,7 +24,7 @@ struct ApiRequest {
 
     /// Challenge name to run the code against
     #[allow(dead_code)]
-    pub challenge_name: String,
+    pub challenge_index: i32,
 }
 
 /// Information from running the compiler
@@ -87,30 +87,46 @@ impl ApiReply {
             test_cases: vec!()
         }
     }
+
+    pub fn compiler_error(error: String) -> Self {
+        ApiReply {
+            runner: ApiRunnerInfo {
+                success: false,
+                stdout: String::new(),
+                stderr: String::new(),
+            },
+            compiler: ApiCompilerInfo { 
+                success: false, 
+                stdout: String::new(), 
+                stderr: error 
+            },
+            runtime_us: vec!(),
+            test_cases: vec!()
+        }
+    }
 }
 
 /// Top-level function that gets an api request
-fn process_reply(request: ApiRequest) -> ApiReply {
+async fn process_reply(request: ApiRequest) -> ApiReply {
     // Get a workspace first
     let client = match ClientWorkspace::new() {
         Ok(c) => c,
-        Err(e) => {
-            let mut reply = ApiReply::blank();
-            reply.compiler.stderr = format!("{:?}", e);
-            return reply;
-        }
+        Err(e) => return ApiReply::compiler_error(format!("Failed to create client workspace, {:?}", e))
     };
+
+    // Copy the proper challenge over to the workspace
+    if let Err(e) = tokio::fs::copy(format!("/app/challenges/challenge_{}.json", request.challenge_index), client.realpath("challenge.json")).await {
+        return ApiReply::compiler_error(format!("Failed to copy challenge code, {:?}", e));
+    }
 
     // Attempt to compile the code
     let c_filename = "user_code.c";
+    let main_c = format!("/app/challenges/mains/main_{}.c", request.challenge_index);
     if let Err(e) = client.write_file(c_filename, request.code.as_str()) {
-        let mut reply = ApiReply::blank();
-        reply.compiler.stderr = format!("{:?}", e);
-        return reply;
+        return ApiReply::compiler_error(format!("Failed to run compiler, {:?}", e));
     }
 
-
-    let compiler_output = match compile_c_file(&client, c_filename) {
+    let compiler_output = match compile_c_file(&client, c_filename, main_c.as_str()) {
         Ok(path) => path,
         Err(e) => {
             debug!("Failed to compile {:?}", request.code);
@@ -137,8 +153,6 @@ fn process_reply(request: ApiRequest) -> ApiReply {
             test_cases: vec!()
         }
     }
-
-    // TODO: Copy the proper challenge to the workspace under the name `WORKSPACE/challenge.json`
 
     // Attempt to run the code
     let runner_output = match create_runner_safe(&client, request.constraints.cpu, request.constraints.ram) {
@@ -169,7 +183,7 @@ fn process_reply(request: ApiRequest) -> ApiReply {
         }
     }
 
-    // TODO: Test cases
+    // TODO: Read test cases from the workspace
 
     ApiReply {
         runner: ApiRunnerInfo {
@@ -206,7 +220,7 @@ pub async fn post_submit_endpoint(req: Request<Body>) -> Response<Body> {
 
     match validate_request(req).await {
         Ok(json) => {
-            let reply = process_reply(json);
+            let reply = process_reply(json).await;
             let body = match serde_json::to_string(&reply) {
                 Ok(string) => string,
                 Err(e) => {

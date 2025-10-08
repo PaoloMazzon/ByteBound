@@ -1,6 +1,7 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
-
+use spdlog::prelude::*;
 use anyhow::anyhow;
+use std::fs;
 
 static G_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
@@ -43,5 +44,14 @@ impl ClientWorkspace {
     /// Returns the complete file path for a given filename
     pub fn realpath(&self, name: &str) -> String {
         format!("{}/{}", self.dir, name)
+    }
+}
+
+// Automatically delete the directory when the client workspace leaves scope
+impl Drop for ClientWorkspace {
+    fn drop(&mut self) {
+        if let Err(e) = fs::remove_dir_all(&self.dir) {
+            error!("Failed to delete client workspace {}, {:?}", self.dir, e);
+        }
     }
 }

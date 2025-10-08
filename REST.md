@@ -9,7 +9,7 @@ change the internal code handling the APIs.
   	"ram": 1000 // in bytes
   },
   "code": "...", // c code to be compiled
-  "challenge_name": "challenge"
+  "challenge_index": 0
 }
 
 // and the /submit reply:

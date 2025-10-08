@@ -46,6 +46,9 @@ WORKDIR /app
 # Expose HTTP port
 EXPOSE 80
 
+# Copy over the challenges
+COPY --from=build /app/challenges/ /app/challenges/
+
 # Copy over the rust backend
 COPY --from=build /app/backend/backend-server/target/x86_64-unknown-linux-musl/release/backend-server /app/server
 
