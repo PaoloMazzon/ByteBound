@@ -51,10 +51,10 @@ impl ClientWorkspace {
 }
 
 // Automatically delete the directory when the client workspace leaves scope
-/*impl Drop for ClientWorkspace {
+impl Drop for ClientWorkspace {
     fn drop(&mut self) {
         if let Err(e) = fs::remove_dir_all(&self.dir) {
             error!("Failed to delete client workspace {}, {:?}", self.dir, e);
         }
     }
-}*/
+}
