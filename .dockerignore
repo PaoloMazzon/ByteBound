@@ -1,0 +1,10 @@
+#.dockerignore (at project root)
+**/node_modules
+**/dist
+**/build
+**/target
+**/.git
+**/.vscode
+**/*.log
+**/__pycache__
+**/.DS_Store

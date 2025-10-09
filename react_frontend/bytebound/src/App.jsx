@@ -15,14 +15,14 @@ export default function ByteCode() {
 
   return (
     <div className="w-full h-screen flex flex-col">
-      <Header ram={ram} setRam={setRam} cpu={cpu} setCpu={setCpu} onSubmitSolution={(soln) => setSolution(soln)}/>
+      <Header solution={solution} code={code} ram={ram} setRam={setRam} cpu={cpu} setCpu={setCpu} onSubmitSolution={setSolution}/>
       
       <div className="flex-1 flex overflow-hidden">
         <ProblemPanel problemNumber={1} />
 
         <div className="flex-1 flex flex-col bg-gray-900">
           <CodeEditor code={code} setCode={setCode} />
-          <CodeOutputBox soln={"Output"} />
+          <CodeOutputBox solution={solution} />
         </div>
       </div>
     </div>
