@@ -6,7 +6,7 @@ change the internal code handling the APIs.
 {
   "constraints": { 
   	"cpu": 500, // in mhz
-  	"ram": 1000 // in bytes
+  	"ram": 1000000 // in bytes
   },
   "code": "...", // c code to be compiled
   "challenge_index": 0
@@ -28,15 +28,5 @@ change the internal code handling the APIs.
   },
   "runtime_us": [329814, 329814], // program runtime in microseconds for each test case
   "test_cases": ["123", "398"] // the output of each test case as a string
-}
-
-// POST /ai endpoint
-{
-  "prompt": "ai prompt"
-}
-
-// and the /ai reply:
-{
-  "reply": ""
 }
 ```

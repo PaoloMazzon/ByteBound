@@ -1,11 +1,10 @@
-version: "3.9"
-
 services:
   runner:
     build:
       context: .
       dockerfile: /app/docker/runner.Dockerfile
     image: runner
+    entrypoint: ["true"]
 
   server:
     build:

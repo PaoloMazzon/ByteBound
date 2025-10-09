@@ -11,9 +11,9 @@ Environment=COMPOSE_FILE=/app/docker/docker-compose.yml
 Environment=SERVICE=bytebound
 
 # Graceful stop: systemd sends SIGTERM, which triggers Hyper's graceful shutdown
-ExecStart=/usr/bin/docker compose up -d server
-ExecReload=/app/update.sh
-ExecStop=/usr/bin/docker compose down
+ExecStart=docker compose -f /app/docker/docker-compose.yml up
+ExecReload=/app/docker/update.sh
+ExecStop=docker compose -f /app/docker/docker-compose.yml down
 
 Restart=always
 RestartSec=5
