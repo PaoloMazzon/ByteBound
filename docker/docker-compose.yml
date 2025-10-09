@@ -1,7 +1,7 @@
 services:
   runner:
     build:
-      context: .
+      context: /app
       dockerfile: /app/docker/runner.Dockerfile
     image: runner
     entrypoint: ["true"]
