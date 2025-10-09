@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const SUBMIT_URL = 'http://ec2-3-129-9-220.us-east-2.compute.amazonaws.com:3000/submit';
+const SUBMIT_URL = 'https://bytebound.app/submit';
 
 export default function useSubmitSolution() {
   const [isSubmitting, setIsSubmitting] = useState(false);
