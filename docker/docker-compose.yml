@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  runner:
+    build:
+      context: .
+      dockerfile: /app/docker/runner.Dockerfile
+    image: runner
+
+  server:
+    build:
+      context: /app
+      dockerfile: /app/docker/server.Dockerfile
+    image: server
+    container_name: server
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /share_folder:/app/clients
