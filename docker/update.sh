@@ -9,6 +9,10 @@ GREEN='\033[0;32m'
 COMPOSE_FILE="/app/docker/docker-compose.yml"
 SERVICE="server"
 
+echo -e "[${GREEN}info${NC}] cloning git"
+cd /app
+git pull origin prod
+
 echo -e "[${GREEN}info${NC}] building new server image"
 docker compose -f "$COMPOSE_FILE" build
 

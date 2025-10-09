@@ -14,4 +14,4 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo systemctl reload myserver
+            sudo systemctl reload bytebound.service

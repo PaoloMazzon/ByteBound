@@ -27,6 +27,9 @@ if ! command -v docker; then
     apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 fi
 
+# Make the update script executable
+chmod u+x /app/docker/update.sh
+
 # Add systemd server for server and start it
 cp docker/bytebound.service /etc/systemd/system/
 systemctl enable bytebound

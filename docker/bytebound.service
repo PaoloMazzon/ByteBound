@@ -5,6 +5,7 @@ Requires=docker.service
 
 [Service]
 User=ubuntu
+TimeoutStartSec=infinity
 WorkingDirectory=/app
 
 Environment=COMPOSE_FILE=/app/docker/docker-compose.yml
