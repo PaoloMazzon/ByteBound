@@ -2,18 +2,20 @@
 # This is for hot-reloads on the server. Do not call this manually.
 set -e
 
-pushd /app
+RED='\033[0;31m'
+NC='\033[0m'
+GREEN='\033[0;32m'
 
-echo "[update] Pulling latest code..."
-git fetch origin prod
-git reset --hard origin/prod
+COMPOSE_FILE="/app/docker/docker-compose.yml"
+SERVICE="server"
 
-echo "[update] Building new container..."
-docker compose -f docker-compose.yml build runner
+echo -e "[${GREEN}info${NC}] building new server image"
+docker compose -f "$COMPOSE_FILE" build
 
-echo "[update] Gracefully restarting server..."
-docker compose -f docker-compose.yml up -d --no-deps --force-recreate server
+echo -e "[${GREEN}info${NC}] gracefully killing old server container"
+docker stop -t 10 "$SERVICE" || true
 
-echo "[update] Done."
+echo -e "[${GREEN}info${NC}] starting new server instance"
+docker compose -f "$COMPOSE_FILE" up -d "$SERVICE"
 
-popd
+echo -e "[${GREEN}info${NC}] done"
