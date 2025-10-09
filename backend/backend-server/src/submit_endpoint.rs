@@ -98,21 +98,21 @@ async fn process_reply(request: ApiRequest) -> ApiReply {
 
     // Copy the proper challenge over to the workspace
     if let Err(e) = tokio::fs::copy(format!("/app/challenges/challenge_{}.json", request.challenge_index), client.realpath("challenge.json")).await {
-        return ApiReply::compiler_error(format!("Failed to copy challenge code, {:?}", e));
+        return ApiReply::compiler_error(format!("Failed to copy challenge code for request {:?}, error: {:?}", request, e));
     }
 
     // Attempt to compile the code
     let c_filename = "user_code.c";
     let main_c = format!("/app/challenges/mains/main_{}.c", request.challenge_index);
     if let Err(e) = client.write_file(c_filename, request.code.as_str()) {
-        return ApiReply::compiler_error(format!("Failed to write out user code, {:?}", e));
+        return ApiReply::compiler_error(format!("Failed to write out user code for request {:?}, error: {:?}", request, e));
     }
 
     let compiler_output = match compile_c_file(&client, c_filename, main_c.as_str()) {
         Ok(path) => path,
         Err(e) => {
             debug!("Failed to compile {:?}", request.code);
-            return ApiReply::compiler_error(format!("Failed to run compiler, {:?}", e));
+            return ApiReply::compiler_error(format!("Failed to run compiler for request {:?}, error: {:?}", request, e));
         }
     };
 
@@ -139,7 +139,7 @@ async fn process_reply(request: ApiRequest) -> ApiReply {
         Ok(out) => out,
         Err(e) => {
             debug!("Failed to run {:?}", request.code);
-            return ApiReply::compiler_error(format!("Failed to run user program, {:?}", e));
+            return ApiReply::compiler_error(format!("Failed to run user program for request {:?}, error: {:?}", request, e));
         }
     };
 
@@ -165,9 +165,9 @@ async fn process_reply(request: ApiRequest) -> ApiReply {
     let runtime_file_string = match client.read_file("runtime.txt") {
         Ok(s) => s,
         Err(e) => {
-            debug!("Failed to get runtimes for code {:?}", request.code);
+            debug!("Failed to get runtimes for request {:?}, error: {:?}", request, e);
             let mut stderr = runner_output.stderr.clone();
-            stderr.push_str(format!("Failed to get runtimes, {:?}", e).as_str());
+            stderr.push_str(format!("Failed to get runtimes for request {:?}, {:?}", request, e).as_str());
             return ApiReply {
                 runner: ApiRunnerInfo {
                     success: true,
@@ -189,10 +189,9 @@ async fn process_reply(request: ApiRequest) -> ApiReply {
     let test_output_file_string = match client.read_file("test_cases_output.txt") {
         Ok(s) => s,
         Err(e) => {
-            debug!("Failed to get test cases for code {:?}", request.code);
-            debug!("Failed to get runtimes for code {:?}", request.code);
+            debug!("Failed to get test cases for request {:?}, error: {:?}", request, e);
             let mut stderr = runner_output.stderr.clone();
-            stderr.push_str(format!("Failed to get test cases for code, {:?}", e).as_str());
+            stderr.push_str(format!("Failed to get test cases for request {:?}, error: {:?}", request, e).as_str());
             return ApiReply {
                 runner: ApiRunnerInfo {
                     success: true,

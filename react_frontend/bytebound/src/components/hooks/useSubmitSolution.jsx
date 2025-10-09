@@ -7,7 +7,7 @@ export default function useSubmitSolution() {
   const [solution, setSolution] = useState(null);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async ({ code, ram, cpu, challenge_index = 1 }) => {
+  const handleSubmit = async ({ code, ram, cpu, challenge_index = 0 }) => {
     setIsSubmitting(true);
     setError(null);
     setSolution(null);
