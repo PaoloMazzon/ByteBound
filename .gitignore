@@ -16,6 +16,7 @@ Cargo.lock
 bin/
 gen/
 out/
+.vscode/
 
 # Gradle files
 .gradle/
