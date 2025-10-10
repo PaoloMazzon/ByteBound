@@ -54,6 +54,8 @@ COPY --from=build /app/backend/backend-server/target/x86_64-unknown-linux-musl/r
 
 # Copy over the React frontend
 COPY --from=build /app/react_frontend/bytebound/dist/ /app/
+COPY --from=build /app/react_frontend/bytebound/src/assets/byteboundicon.svg /app/assets/
+COPY --from=build /app/react_frontend/bytebound/src/assets/byteboundlogo.png /app/assets/
 
 # Entrypoint stuff
 COPY docker/server_entry.sh /app/entry.sh
