@@ -7,7 +7,7 @@ export default function useSubmitSolution() {
   const [solution, setSolution] = useState(null);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async ({ code, ram, cpu, challenge_index = 1 }) => {
+  const handleSubmit = async ({ code, ram, cpu, challenge_index = 0 }) => {
     setIsSubmitting(true);
     setError(null);
     setSolution(null);
@@ -18,7 +18,8 @@ export default function useSubmitSolution() {
         code: code,
         challenge_index: challenge_index
       };
-
+      console.log(code)
+      console.log(JSON.stringify(requestBody))
       const response = await fetch(SUBMIT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -44,7 +45,7 @@ export default function useSubmitSolution() {
         runtime_us: data.runtime_us,
         test_cases: data.test_cases
       };
-
+      console.log('reply good')
       setSolution(soln);
       return soln;
 

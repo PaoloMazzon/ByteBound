@@ -1,4 +1,6 @@
 export default function CodeOutputBox({ solution }) {
+  console.log("in output box")
+  console.log(solution)
   if (!solution) {
     return (
       <div className="flex-1 bg-gray-900 text-gray-400 p-6">

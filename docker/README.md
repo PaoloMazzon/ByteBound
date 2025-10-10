@@ -1,15 +1,11 @@
-# Top-level server
-Run the following command at the root directory of this repo on the server to set it up:
+# Creating a server
+In case someone blows up the EC2, run these commands in a fresh install of Ubuntu
+and then give Docker sometime to build the image. You should have a fresh server
+after that.
 
 ```bash
-docker build -t server -f docker/server.Dockerfile .
-docker build -t runner -f docker/runner.Dockerfile .
-docker run -d --rm -v /var/run/docker.sock:/var/run/docker.sock -p 80:80 -v /share_folder:/app/clients/ --name server server
-docker cp API_KEY_PATH server:/app/.env
-```
-
-Kill it later simply with 
-
-```bash
-docker kill server
+sudo git clone https://github.com/PaoloMazzon/ByteBound.git/ /app/
+cd /app
+sudo chmod u+x docker/bootstrap.sh
+sudo docker/bootstrap.sh
 ```

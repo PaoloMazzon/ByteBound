@@ -2,13 +2,15 @@ import React from 'react'
 import {Code, CheckCircle} from 'lucide-react'
 import useSubmitSolution from './hooks/useSubmitSolution'
 
-export default function Header({ ram, setRam, cpu, setCpu, onSubmitSolution }) {
+export default function Header({ code, ram, setRam, cpu, setCpu, onSubmitSolution }) {
   const { handleSubmit } = useSubmitSolution();
 
   async function handleClick() {
     try {
       // Assuming you’ll later include `code` as well (for now it's not in Header)
-      const solution = await handleSubmit({ ram, cpu });
+      const solution = await handleSubmit({code, ram, cpu });
+      console.log('header got:')
+      console.log(solution)
       onSubmitSolution(solution);
     } catch (err) {
       console.error("Submission failed:", err);

@@ -1,0 +1,24 @@
+[Unit]
+Description=ByteBound Server
+After=docker.service
+Requires=docker.service
+
+[Service]
+User=ubuntu
+TimeoutStartSec=infinity
+WorkingDirectory=/app
+
+Environment=COMPOSE_FILE=/app/docker/docker-compose.yml
+Environment=SERVICE=bytebound
+
+# Graceful stop: systemd sends SIGTERM, which triggers Hyper's graceful shutdown
+ExecStart=sudo docker compose -f /app/docker/docker-compose.yml up
+ExecReload=sudo /app/docker/update.sh
+ExecStop=sudo docker compose -f /app/docker/docker-compose.yml down
+
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

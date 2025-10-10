@@ -7,4 +7,4 @@ programming in bounded environments.
 We rely on React to provide us a clean, stable frontend, and the frontend communicates with our Rust + 
 Tokio backend webserver. 
 
-Project for Storm Surge Hackathon 2025 by Paolo Mazzon, Gavin Foster, Wilson Agyapong, and Nikita Egorov.
+Project for Storm Surge Hackathon 2025 by Paolo Mazzon, Gavin Foster, Wilson Agyapong, and Nikita Egorov
