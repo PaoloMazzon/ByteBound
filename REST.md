@@ -26,7 +26,56 @@ change the internal code handling the APIs.
     "stdout": "",
     "stderr": "",
   },
-  "runtime_us": [329814, 329814], // program runtime in microseconds for each test case
-  "test_cases": ["123", "398"] // the output of each test case as a string
+  // information on each individual test case
+  "test_cases": [
+    {
+      "runtime_us": 98321,
+      "expected_value": 12,
+      "actual_value": 12,
+      "input_value": 5,
+      "memory_usage_kb": 42356
+    },
+    {
+      "runtime_us": 48321,
+      "expected_value": 12,
+      "actual_value": 12,
+      "input_value": 5,
+      "memory_usage_kb": 42356
+    },
+  ]
+}
+
+// /challenge_query (used to get data about challenges available)
+{
+  // no payload yet
+}
+
+// /challenge_query reply
+{
+  "count": 3,
+  "challenges": [
+    {
+      "name": "xyz",
+      "difficulty": "easy/medium/hard/expert",
+      "brief": "brief description"
+    },
+    {
+      // ...
+    }
+  ]
+}
+
+// /challenge_info_query (used to get info about a specific challenge)
+{
+  "index": 0, // index into the previously gotten challenge list from /challenge_query
+}
+
+// and the reply
+{
+  "name": "xyz",
+  "difficulty": "easy/medium/hard/expert",
+  "brief": "brief description",
+  "description": "longer description in markdown",
+  "sample_code": "this code should be in the editor by default"
 }
 ```

@@ -1,3 +1,4 @@
+use anyhow::Context;
 use hyper::{body::to_bytes, Body, Request, Response, StatusCode};
 use serde::{Deserialize, Serialize};
 use spdlog::prelude::*;
@@ -53,6 +54,26 @@ struct ApiRunnerInfo {
     stderr: String,
 }
 
+/// Information on each ran test case
+#[derive(Serialize, Debug)]
+#[allow(dead_code)]
+struct ApiTestCaseInfo {
+    /// Runtime of this specific test case in microseconds
+    runtime_us: i64,
+
+    /// Expected value to be returned from the test case
+    expected_value: String,
+    
+    /// Actual value returned by the user program
+    actual_value: String,
+
+    /// Input given to the user program
+    input_value: String,
+
+    /// How much memory the program used at its peak
+    memory_usage_kb: usize
+}
+
 /// Represents the outgoing response, maps 1:1 to REST.md
 #[derive(Serialize, Debug)]
 struct ApiReply {
@@ -69,56 +90,28 @@ struct ApiReply {
     pub test_cases: Vec<String>
 }
 
-impl ApiReply {
-    pub fn compiler_error(error: String) -> Self {
-        ApiReply {
-            runner: ApiRunnerInfo {
-                success: false,
-                stdout: String::new(),
-                stderr: String::new(),
-            },
-            compiler: ApiCompilerInfo { 
-                success: false, 
-                stdout: String::new(), 
-                stderr: error 
-            },
-            runtime_us: vec!(),
-            test_cases: vec!()
-        }
-    }
-}
-
 /// Top-level function that gets an api request
-async fn process_reply(request: ApiRequest) -> ApiReply {
+async fn process_reply(request: ApiRequest) -> Result<ApiReply, anyhow::Error> {
     // Get a workspace first
-    let client = match ClientWorkspace::new() {
-        Ok(c) => c,
-        Err(e) => return ApiReply::compiler_error(format!("Failed to create client workspace, {:?}", e))
-    };
+    let client = ClientWorkspace::new().context("Failed to create client workspace")?;
 
     // Copy the proper challenge over to the workspace
-    if let Err(e) = tokio::fs::copy(format!("/app/challenges/challenge_{}.json", request.challenge_index), client.realpath("challenge.json")).await {
-        return ApiReply::compiler_error(format!("Failed to copy challenge code for request {:?}, error: {:?}", request, e));
-    }
+    tokio::fs::copy(format!("/app/challenges/challenge_{}.json", request.challenge_index), client.realpath("challenge.json"))
+        .await
+        .context(format!("Failed to copy challenge code for challenge {}", request.challenge_index))?;
 
     // Attempt to compile the code
     let c_filename = "user_code.c";
     let main_c = format!("/app/challenges/mains/main_{}.c", request.challenge_index);
-    if let Err(e) = client.write_file(c_filename, request.code.as_str()) {
-        return ApiReply::compiler_error(format!("Failed to write out user code for request {:?}, error: {:?}", request, e));
-    }
+    client.write_file(c_filename, request.code.as_str())
+        .context("Failed to write out client code to temporary directory.")?;
 
-    let compiler_output = match compile_c_file(&client, c_filename, main_c.as_str()) {
-        Ok(path) => path,
-        Err(e) => {
-            debug!("Failed to compile {:?}", request.code);
-            return ApiReply::compiler_error(format!("Failed to run compiler for request {:?}, error: {:?}", request, e));
-        }
-    };
+    let compiler_output = compile_c_file(&client, c_filename, main_c.as_str())
+        .context("Failed to run the compiler.")?;
 
     // Check if the compiler failed
     if compiler_output.status != 0 {
-        return ApiReply {
+        return Ok(ApiReply {
             runner: ApiRunnerInfo {
                 success: false,
                 stdout: String::new(),
@@ -131,21 +124,16 @@ async fn process_reply(request: ApiRequest) -> ApiReply {
             },
             runtime_us: vec!(),
             test_cases: vec!()
-        }
+        });
     }
 
     // Attempt to run the code
-    let runner_output = match create_runner_safe(&client, request.constraints.cpu, request.constraints.ram) {
-        Ok(out) => out,
-        Err(e) => {
-            debug!("Failed to run {:?}", request.code);
-            return ApiReply::compiler_error(format!("Failed to run user program for request {:?}, error: {:?}", request, e));
-        }
-    };
+    let runner_output = create_runner_safe(&client, request.constraints.cpu, request.constraints.ram)
+        .context("Failed to run client code")?;
 
     // Check if the runner failed
     if runner_output.status != 0 {
-        return ApiReply {
+        return Ok(ApiReply {
             runner: ApiRunnerInfo {
                 success: false,
                 stdout: runner_output.stdout,
@@ -158,7 +146,7 @@ async fn process_reply(request: ApiRequest) -> ApiReply {
             },
             runtime_us: vec!(),
             test_cases: vec!()
-        }
+        });
     }
 
     // Grab runtimes from the runner
@@ -166,22 +154,7 @@ async fn process_reply(request: ApiRequest) -> ApiReply {
         Ok(s) => s,
         Err(e) => {
             debug!("Failed to get runtimes for request {:?}, error: {:?}", request, e);
-            let mut stderr = runner_output.stderr.clone();
-            stderr.push_str(format!("Failed to get runtimes for request {:?}, {:?}", request, e).as_str());
-            return ApiReply {
-                runner: ApiRunnerInfo {
-                    success: true,
-                    stdout: runner_output.stdout,
-                    stderr: stderr,
-                },
-                compiler: ApiCompilerInfo { 
-                    success: false, 
-                    stdout: compiler_output.stdout,
-                    stderr: compiler_output.stderr
-                },
-                runtime_us: vec!(),
-                test_cases: vec!()
-            };
+            return Err(anyhow::anyhow!("Failed to get runtimes, error: {:?}", e));
         }
     };
 
@@ -190,22 +163,7 @@ async fn process_reply(request: ApiRequest) -> ApiReply {
         Ok(s) => s,
         Err(e) => {
             debug!("Failed to get test cases for request {:?}, error: {:?}", request, e);
-            let mut stderr = runner_output.stderr.clone();
-            stderr.push_str(format!("Failed to get test cases for request {:?}, error: {:?}", request, e).as_str());
-            return ApiReply {
-                runner: ApiRunnerInfo {
-                    success: true,
-                    stdout: runner_output.stdout,
-                    stderr: stderr,
-                },
-                compiler: ApiCompilerInfo { 
-                    success: false, 
-                    stdout: compiler_output.stdout,
-                    stderr: compiler_output.stderr
-                },
-                runtime_us: vec!(),
-                test_cases: vec!()
-            };
+            return Err(anyhow::anyhow!("Failed to get test cases, error: {:?}", e));
         }
     };
     
@@ -218,7 +176,7 @@ async fn process_reply(request: ApiRequest) -> ApiReply {
     runtimes.pop();
     test_cases_outputs.pop();
 
-    ApiReply {
+    Ok(ApiReply {
         runner: ApiRunnerInfo {
             success: true,
             stdout: runner_output.stdout,
@@ -231,7 +189,7 @@ async fn process_reply(request: ApiRequest) -> ApiReply {
         },
         runtime_us: runtimes,
         test_cases: test_cases_outputs
-    }
+    })
 }
 
 /// Returns a json guaranteed to contain all necessary fields if the request
@@ -253,20 +211,29 @@ pub async fn post_submit_endpoint(req: Request<Body>) -> Response<Body> {
 
     match validate_request(req).await {
         Ok(json) => {
-            let reply = process_reply(json).await;
-            let body = match serde_json::to_string(&reply) {
-                Ok(string) => string,
-                Err(e) => {
-                    // this should never happen
-                    warn!("Failed to parse submit request {:#?}, {:?}", reply, e);
-                    "null".to_string()
-                }
-            };
+            match process_reply(json).await {
+                Ok(reply) => {
+                        let body = match serde_json::to_string(&reply) {
+                        Ok(string) => string,
+                        Err(e) => {
+                            // this should never happen
+                            warn!("Failed to parse submit request {:#?}, {:?}", reply, e);
+                            "null".to_string()
+                        }
+                    };
 
-            Response::builder()
-                        .status(StatusCode::OK)
-                        .body(body.into())
-                        .unwrap_or(default_reply)
+                    Response::builder()
+                                .status(StatusCode::OK)
+                                .body(body.into())
+                                .unwrap_or(default_reply)
+                },
+                Err(e) => {
+                    Response::builder()
+                                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                                .body(format!("{:?}", e).into())
+                                .unwrap_or(default_reply)
+                }
+            }
         },
         Err(e) => {
             warn!("Received a bad /submit request, error: {:?}", e);
